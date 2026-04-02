@@ -1,5 +1,5 @@
-streamlit==1.32.0
-pandas==2.2.1
-mysql-connector-python==8.3.0
-bcrypt==4.1.2
+streamlit
+pandas
+mysql-connector-python
+bcrypt
 plotly
