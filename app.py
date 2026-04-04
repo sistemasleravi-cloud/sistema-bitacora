@@ -99,6 +99,11 @@ def init_connection():
 conn = init_connection()
 
 def db_query(query, params=None, fetch=False):
+    try:
+        conn.ping(reconnect=True, attempts=3, delay=1)
+    except:
+        pass
+        
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params or ())
     if fetch:
