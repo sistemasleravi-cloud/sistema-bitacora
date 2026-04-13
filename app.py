@@ -17,21 +17,19 @@ def load_css(file_name):
 
 load_css("style.css")
 
-# --- CORRECCIÓN VISUAL: Separamos los estilos de la barra lateral y el área principal ---
+# --- CORRECCIÓN VISUAL DEFINITIVA ---
 st.markdown("""
     <style>
-        /* Pestañas de gráficas (Área principal) - Textos Negros */
-        section.main div.stRadio > div[role="radiogroup"] label p {
+        /* 1. Regla general: Todos los botones de opción (Radio) tendrán texto oscuro */
+        .stRadio p {
             color: #1A1A1A !important;
             font-family: 'DM Sans', sans-serif;
             font-weight: 600 !important;
         }
 
-        /* Menú de Navegación (Barra Lateral) - Textos Blancos */
-        section[data-testid="stSidebar"] div.stRadio > div[role="radiogroup"] label p {
+        /* 2. Excepción: Solo los botones que vivan adentro de la barra lateral serán blancos */
+        [data-testid="stSidebar"] .stRadio p {
             color: #FFFFFF !important;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 600 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -216,7 +214,7 @@ def login_screen():
                 display:inline-block;background:#0A0A0A;color:#C8102E;
                 font-family:'Bebas Neue',sans-serif;font-size:2.6rem;
                 letter-spacing:0.2em;padding:0.4rem 1.6rem;
-                border:3px solid #C8102E;margin-bottom:0.5rem;">Grupo Constructor Leravi</div>
+                border:3px solid #C8102E;margin-bottom:0.5rem;">SISTEMA</div>
             <p style="color:#5A5A5A;font-family:'DM Sans',sans-serif;font-size:0.8rem;
                       letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;">
                 Control Administrativo de Personal</p>
@@ -660,35 +658,35 @@ def admin_panel():
             curr = opc[sel]
             st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
             with st.form("upd"):
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 1", unsafe_allow_html=True)
                 c1, c2, c3 = st.columns([2, 2, 1])
                 t1 = c1.text_input("Tarea 1", value=curr.get('tarea_1', '-'))
                 opts_m1, idx_m1 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_1', '-'))
                 m1 = c2.selectbox("Maquina 1", opts_m1, index=idx_m1)
                 a1 = c3.number_input("Avance 1 (%)", 0, 100, curr.get('avance_1', 0), step=5)
                 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 2", unsafe_allow_html=True)
                 c4, c5, c6 = st.columns([2, 2, 1])
                 t2 = c4.text_input("Tarea 2", value=curr.get('tarea_2', '-'))
                 opts_m2, idx_m2 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_2', '-'))
                 m2 = c5.selectbox("Maquina 2", opts_m2, index=idx_m2)
                 a2 = c6.number_input("Avance 2 (%)", 0, 100, curr.get('avance_2', 0), step=5)
                 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 3", unsafe_allow_html=True)
                 c7, c8, c9 = st.columns([2, 2, 1])
                 t3 = c7.text_input("Tarea 3", value=curr.get('tarea_3', '-'))
                 opts_m3, idx_m3 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_3', '-'))
                 m3 = c8.selectbox("Maquina 3", opts_m3, index=idx_m3)
                 a3 = c9.number_input("Avance 3 (%)", 0, 100, curr.get('avance_3', 0), step=5)
 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 4", unsafe_allow_html=True)
                 c10, c11, c12 = st.columns([2, 2, 1])
                 t4 = c10.text_input("Tarea 4", value=curr.get('tarea_4', '-'))
                 opts_m4, idx_m4 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_4', '-'))
                 m4 = c11.selectbox("Maquina 4", opts_m4, index=idx_m4)
                 a4 = c12.number_input("Avance 4 (%)", 0, 100, curr.get('avance_4', 0), step=5)
 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 5", unsafe_allow_html=True)
                 c13, c14, c15 = st.columns([2, 2, 1])
                 t5 = c13.text_input("Tarea 5", value=curr.get('tarea_5', '-'))
                 opts_m5, idx_m5 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_5', '-'))
