@@ -216,7 +216,7 @@ def login_screen():
                 display:inline-block;background:#0A0A0A;color:#C8102E;
                 font-family:'Bebas Neue',sans-serif;font-size:2.6rem;
                 letter-spacing:0.2em;padding:0.4rem 1.6rem;
-                border:3px solid #C8102E;margin-bottom:0.5rem;">SISTEMA</div>
+                border:3px solid #C8102E;margin-bottom:0.5rem;">Grupo Constructor Leravi</div>
             <p style="color:#5A5A5A;font-family:'DM Sans',sans-serif;font-size:0.8rem;
                       letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;">
                 Control Administrativo de Personal</p>
