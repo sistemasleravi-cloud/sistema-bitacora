@@ -94,32 +94,29 @@ def init_connection():
                 hashed = bcrypt.hashpw("SistemaMantenimiento0611".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
                 cursor.execute("INSERT INTO usuarios (usuario, password_hash) VALUES ('Admin', %s)", (hashed,))
 
-            try:
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN maquina_1 VARCHAR(255) DEFAULT '-'")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN maquina_2 VARCHAR(255) DEFAULT '-'")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN maquina_3 VARCHAR(255) DEFAULT '-'")
-                conn.commit()
-            except:
-                pass
-                
-            try:
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN tarea_4 VARCHAR(255) DEFAULT '-'")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN avance_4 INT DEFAULT 0")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN fecha_inicio_4 DATE DEFAULT NULL")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN maquina_4 VARCHAR(255) DEFAULT '-'")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN tarea_5 VARCHAR(255) DEFAULT '-'")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN avance_5 INT DEFAULT 0")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN fecha_inicio_5 DATE DEFAULT NULL")
-                cursor.execute("ALTER TABLE bitacora ADD COLUMN maquina_5 VARCHAR(255) DEFAULT '-'")
-                conn.commit()
-            except:
-                pass
-
-            try:
-                cursor.execute("ALTER TABLE bitacora_completados ADD COLUMN maquina VARCHAR(255) DEFAULT '-'")
-                conn.commit()
-            except:
-                pass
+            # --- BLINDAJE DE COLUMNAS NUEVAS EN LA NUBE ---
+            # Evaluamos cada columna de forma independiente para evitar que un error aborte todo el proceso
+            columnas_nuevas = [
+                "ALTER TABLE bitacora ADD COLUMN maquina_1 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora ADD COLUMN maquina_2 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora ADD COLUMN maquina_3 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora ADD COLUMN tarea_4 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora ADD COLUMN avance_4 INT DEFAULT 0",
+                "ALTER TABLE bitacora ADD COLUMN fecha_inicio_4 DATE DEFAULT NULL",
+                "ALTER TABLE bitacora ADD COLUMN maquina_4 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora ADD COLUMN tarea_5 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora ADD COLUMN avance_5 INT DEFAULT 0",
+                "ALTER TABLE bitacora ADD COLUMN fecha_inicio_5 DATE DEFAULT NULL",
+                "ALTER TABLE bitacora ADD COLUMN maquina_5 VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora_completados ADD COLUMN maquina VARCHAR(255) DEFAULT '-'"
+            ]
+            
+            for col_query in columnas_nuevas:
+                try:
+                    cursor.execute(col_query)
+                    conn.commit()
+                except:
+                    pass # Si la columna ya existe, la ignora silenciosamente y pasa a la siguiente
 
             # Limpiador de espacios y mayusculas automatico en historico
             try:
@@ -679,14 +676,14 @@ def admin_panel():
                 m3 = c8.selectbox("Maquina 3", opts_m3, index=idx_m3)
                 a3 = c9.number_input("Avance 3 (%)", 0, 100, curr.get('avance_3', 0), step=5)
 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("###", unsafe_allow_html=True)
                 c10, c11, c12 = st.columns([2, 2, 1])
                 t4 = c10.text_input("Tarea 4", value=curr.get('tarea_4', '-'))
                 opts_m4, idx_m4 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_4', '-'))
                 m4 = c11.selectbox("Maquina 4", opts_m4, index=idx_m4)
                 a4 = c12.number_input("Avance 4 (%)", 0, 100, curr.get('avance_4', 0), step=5)
 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("###", unsafe_allow_html=True)
                 c13, c14, c15 = st.columns([2, 2, 1])
                 t5 = c13.text_input("Tarea 5", value=curr.get('tarea_5', '-'))
                 opts_m5, idx_m5 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_5', '-'))
