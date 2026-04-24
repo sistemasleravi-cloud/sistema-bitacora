@@ -17,19 +17,32 @@ def load_css(file_name):
 
 load_css("style.css")
 
-# --- CORRECCIÓN VISUAL DEFINITIVA ---
+# --- CORRECCIÓN VISUAL BLINDADA ---
 st.markdown("""
     <style>
-        /* 1. Regla general: Todos los botones de opción (Radio) tendrán texto oscuro */
-        .stRadio p {
+        /* 1. Área Principal (Main): Letras negras y en negritas para las pestañas */
+        section.main div[role="radiogroup"] p {
             color: #1A1A1A !important;
             font-family: 'DM Sans', sans-serif;
-            font-weight: 600 !important;
+            font-weight: 800 !important;
         }
 
-        /* 2. Excepción: Solo los botones que vivan adentro de la barra lateral serán blancos */
-        [data-testid="stSidebar"] .stRadio p {
+        /* 2. Barra Lateral (Sidebar): Letras puramente blancas */
+        section[data-testid="stSidebar"] div[role="radiogroup"] p {
             color: #FFFFFF !important;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600 !important;
+            opacity: 1 !important; 
+        }
+        
+        /* 3. Evitar desbordamiento de texto en botones */
+        .stButton > button {
+            height: auto !important;
+            white-space: normal !important;
+            min-height: 2.5rem !important;
+            line-height: 1.3 !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -89,13 +102,34 @@ def init_connection():
                 )
             """)
 
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS prestamo_herramientas (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    trabajador VARCHAR(100) NOT NULL,
+                    herramienta VARCHAR(255) NOT NULL,
+                    tarea VARCHAR(255) NOT NULL,
+                    fecha_prestamo DATETIME NOT NULL,
+                    fecha_devolucion DATETIME DEFAULT NULL,
+                    estado VARCHAR(20) DEFAULT 'Prestado'
+                )
+            """)
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS taller (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    maquina VARCHAR(255) NOT NULL,
+                    motivo VARCHAR(255) NOT NULL,
+                    fecha_ingreso DATETIME NOT NULL,
+                    fecha_salida DATETIME DEFAULT NULL,
+                    estado VARCHAR(20) DEFAULT 'En Taller'
+                )
+            """)
+
             cursor.execute("SELECT * FROM usuarios WHERE usuario = 'Admin'")
             if not cursor.fetchone():
                 hashed = bcrypt.hashpw("SistemaMantenimiento0611".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
                 cursor.execute("INSERT INTO usuarios (usuario, password_hash) VALUES ('Admin', %s)", (hashed,))
 
-            # --- BLINDAJE DE COLUMNAS NUEVAS EN LA NUBE ---
-            # Evaluamos cada columna de forma independiente para evitar que un error aborte todo el proceso
             columnas_nuevas = [
                 "ALTER TABLE bitacora ADD COLUMN maquina_1 VARCHAR(255) DEFAULT '-'",
                 "ALTER TABLE bitacora ADD COLUMN maquina_2 VARCHAR(255) DEFAULT '-'",
@@ -116,9 +150,8 @@ def init_connection():
                     cursor.execute(col_query)
                     conn.commit()
                 except:
-                    pass # Si la columna ya existe, la ignora silenciosamente y pasa a la siguiente
+                    pass
 
-            # Limpiador de espacios y mayusculas automatico en historico
             try:
                 cursor.execute("UPDATE bitacora_completados SET maquina = TRIM(UPPER(maquina)) WHERE maquina IS NOT NULL AND maquina != '-'")
                 cursor.execute("UPDATE maquinas SET nombre = TRIM(UPPER(nombre)) WHERE nombre IS NOT NULL")
@@ -253,7 +286,7 @@ def admin_panel():
         st.markdown("<h1>Dashboard Analitico</h1>", unsafe_allow_html=True)
         st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 
-        vista = st.radio("Selecciona una vista:", ["Vision General", "Top Maquinas", "Top Trabajadores"], horizontal=True, label_visibility="collapsed")
+        vista = st.radio("Selecciona una vista:", ["Vision General", "Top Maquinas", "Top Trabajadores", "Control Herramientas", "Taller"], horizontal=True, label_visibility="collapsed")
         st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
 
         if vista == "Vision General":
@@ -568,6 +601,243 @@ def admin_panel():
             else:
                 st.info("Aun no hay suficientes tareas completadas registradas para generar este analisis.")
 
+        elif vista == "Control Herramientas":
+            st.markdown("<h2>Asignación y Control de Herramientas</h2>", unsafe_allow_html=True)
+            
+            res_trab = db_query("SELECT nombre FROM bitacora ORDER BY nombre ASC", fetch=True)
+            lista_trabajadores_herr = [r['nombre'] for r in res_trab] if res_trab else []
+
+            with st.form("form_asignar_herramienta"):
+                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra la salida de una herramienta del almacén.</p>", unsafe_allow_html=True)
+                c1, c2, c3 = st.columns(3)
+                
+                if lista_trabajadores_herr:
+                    trab_herr = c1.selectbox("Trabajador", lista_trabajadores_herr)
+                else:
+                    trab_herr = c1.selectbox("Trabajador", ["- Ninguno -"])
+                    
+                herramienta = c2.text_input("Herramienta a prestar")
+                tarea_herr = c3.text_input("Tarea/Motivo de uso (Opcional)")
+                
+                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+                if st.form_submit_button("REGISTRAR SALIDA DE HERRAMIENTA"):
+                    if not lista_trabajadores_herr or trab_herr == "- Ninguno -":
+                        st.error("Primero debes dar de alta trabajadores en el sistema.")
+                    elif not herramienta: 
+                        st.error("El nombre de la herramienta es obligatorio.")
+                    else:
+                        ahora = datetime.now()
+                        motivo = tarea_herr.strip() if tarea_herr.strip() else "Sin especificar"
+                        
+                        db_query("""
+                            INSERT INTO prestamo_herramientas (trabajador, herramienta, tarea, fecha_prestamo, estado) 
+                            VALUES (%s, %s, %s, %s, 'Prestado')
+                        """, (trab_herr, herramienta, motivo, ahora))
+                        st.success(f"¡Salida registrada! {herramienta} entregada a {trab_herr}.")
+                        time.sleep(1)
+                        st.rerun()
+
+            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
+            st.markdown("<h3>Herramientas Prestadas (Pendientes de Devolución)</h3>", unsafe_allow_html=True)
+            
+            prestadas = db_query("SELECT * FROM prestamo_herramientas WHERE estado = 'Prestado' ORDER BY fecha_prestamo DESC", fetch=True)
+            
+            if prestadas:
+                for row in prestadas:
+                    # AJUSTE DE COLUMNAS PARA DAR MÁS ESPACIO AL BOTÓN
+                    c_info, c_btn = st.columns([4, 1])
+                    
+                    fecha_p_str = row['fecha_prestamo'].strftime("%Y-%m-%d %H:%M") if isinstance(row['fecha_prestamo'], datetime) else str(row['fecha_prestamo'])
+                    herr_safe = html.escape(str(row['herramienta']))
+                    trab_safe = html.escape(str(row['trabajador']))
+                    tar_safe = html.escape(str(row['tarea']))
+
+                    c_info.markdown(f"""
+                        <div style="background:white;border:1px solid #E8E8E8;border-left:3px solid #ffc107;
+                                    border-radius:3px;padding:0.7rem 1rem;margin-bottom:0.5rem;">
+                            <p style="font-family:'DM Sans',sans-serif;font-size:0.7rem;font-weight:600;
+                                      letter-spacing:0.1em;text-transform:uppercase;color:#5A5A5A;margin:0;">
+                                EN USO POR: {trab_safe}</p>
+                            <p style="font-family:'DM Sans',sans-serif;font-size:1rem;color:#0A0A0A;
+                                      margin:0.1rem 0 0 0;"><b>{herr_safe}</b> 
+                                <span style="color:#5A5A5A;font-size:0.85rem;margin-left:0.5rem;">(Tarea: {tar_safe})</span>
+                            </p>
+                            <p style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:#C8102E;margin:0.2rem 0 0 0;">
+                                <i class="fas fa-clock"></i> Prestado el: {fecha_p_str}
+                            </p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    with c_btn:
+                        st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
+                        if st.button("✔ DEVOLVER", key=f"dev_{row['id']}", use_container_width=True):
+                            ahora_dev = datetime.now()
+                            db_query("""
+                                UPDATE prestamo_herramientas 
+                                SET estado = 'Devuelto', fecha_devolucion = %s 
+                                WHERE id = %s
+                            """, (ahora_dev, row['id']))
+                            st.success(f"{herr_safe} ha regresado al almacén.")
+                            time.sleep(0.8)
+                            st.rerun()
+            else:
+                st.info("Actualmente no hay herramientas prestadas. Todo está en almacén.")
+
+            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
+            st.markdown("<h3>Historial de Herramientas Devueltas</h3>", unsafe_allow_html=True)
+            
+            devueltas = db_query("""
+                SELECT trabajador as Trabajador, herramienta as Herramienta, tarea as Tarea, 
+                       fecha_prestamo as 'Fecha Salida', fecha_devolucion as 'Fecha Entrega' 
+                FROM prestamo_herramientas 
+                WHERE estado = 'Devuelto' 
+                ORDER BY fecha_devolucion DESC 
+                LIMIT 100
+            """, fetch=True)
+            
+            if devueltas:
+                st.dataframe(pd.DataFrame(devueltas), use_container_width=True, hide_index=True)
+            else:
+                st.info("No hay historial de devoluciones aún.")
+
+        elif vista == "Taller":
+            st.markdown("<h2>Gestión de Taller (Máquinas en Reparación)</h2>", unsafe_allow_html=True)
+            
+            lista_maquinas = obtener_lista_maquinas()
+            lista_maquinas_clean = [m for m in lista_maquinas if m != '-']
+            
+            with st.form("form_ingreso_taller"):
+                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra el ingreso de una máquina averiada al taller.</p>", unsafe_allow_html=True)
+                c1, c2 = st.columns([1, 2])
+                
+                if lista_maquinas_clean:
+                    maq_taller = c1.selectbox("Máquina a ingresar", lista_maquinas_clean)
+                else:
+                    maq_taller = c1.selectbox("Máquina a ingresar", ["- Sin máquinas registradas -"])
+                    
+                motivo_taller = c2.text_input("Motivo de ingreso / Falla reportada")
+                
+                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+                if st.form_submit_button("REGISTRAR INGRESO A TALLER"):
+                    if not lista_maquinas_clean or maq_taller == "- Sin máquinas registradas -":
+                        st.error("Primero debes dar de alta máquinas en el sistema.")
+                    elif not motivo_taller:
+                        st.error("Debes especificar la falla o motivo de ingreso.")
+                    else:
+                        ahora = datetime.now()
+                        db_query("""
+                            INSERT INTO taller (maquina, motivo, fecha_ingreso, estado) 
+                            VALUES (%s, %s, %s, 'En Taller')
+                        """, (maq_taller, motivo_taller, ahora))
+                        st.success(f"Máquina {maq_taller} ingresada al taller correctamente.")
+                        time.sleep(1)
+                        st.rerun()
+            
+            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
+            st.markdown("<h3>Máquinas actualmente en Taller</h3>", unsafe_allow_html=True)
+            
+            en_taller = db_query("SELECT * FROM taller WHERE estado = 'En Taller' ORDER BY fecha_ingreso DESC", fetch=True)
+            data_bita = db_query("SELECT * FROM bitacora", fetch=True)
+            
+            if en_taller:
+                hoy = datetime.now()
+                for row in en_taller:
+                    dias_en_taller = (hoy - row['fecha_ingreso']).days
+                    if dias_en_taller == 0:
+                        dias_str = "Ingresó hoy"
+                    elif dias_en_taller == 1:
+                        dias_str = "1 día en taller"
+                    else:
+                        dias_str = f"{dias_en_taller} días en taller"
+                        
+                    maq_safe = html.escape(str(row['maquina']))
+                    motivo_safe = html.escape(str(row['motivo']))
+                    
+                    tareas_en_proceso = []
+                    if data_bita:
+                        for rb in data_bita:
+                            for i in range(1, 6):
+                                bita_maq = str(rb.get(f'maquina_{i}')).strip().upper()
+                                bita_tarea = rb.get(f'tarea_{i}')
+                                if bita_maq == maq_safe and bita_tarea and bita_tarea != '-':
+                                    tareas_en_proceso.append({
+                                        'trabajador': rb['nombre'],
+                                        'tarea': bita_tarea,
+                                        'avance': rb.get(f'avance_{i}', 0)
+                                    })
+                    
+                    tareas_html = ""
+                    if tareas_en_proceso:
+                        tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'>"
+                        tareas_html += "<p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-weight:bold; margin-bottom:0.3rem;'><i class='fas fa-wrench'></i> Actividades en proceso:</p>"
+                        for t in tareas_en_proceso:
+                            t_safe = html.escape(str(t['tarea']))
+                            tr_safe = html.escape(str(t['trabajador']))
+                            tareas_html += f"""
+                                <p style='font-family:DM Sans; font-size:0.85rem; color:#212529; margin:0.1rem 0;'>
+                                    • {tr_safe} está trabajando en: <b>{t_safe}</b> <span style='color:#C8102E;'>({t['avance']}%)</span>
+                                </p>
+                            """
+                        tareas_html += "</div>"
+                    else:
+                        tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'><p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-style:italic; margin:0;'>No hay trabajadores con tareas activas asignadas a esta máquina.</p></div>"
+
+                    # AJUSTE DE COLUMNAS PARA DAR MÁS ESPACIO AL BOTÓN
+                    c_info, c_btn = st.columns([4, 1])
+                    
+                    c_info.markdown(f"""
+                        <div style="background:white;border:1px solid #E8E8E8;border-left:4px solid #dc3545;
+                                    border-radius:3px;padding:1rem;margin-bottom:0.5rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <p style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#0A0A0A; margin:0; letter-spacing: 1px;">
+                                    {maq_safe}
+                                </p>
+                                <span style="background-color:#dc3545; color:white; padding: 2px 8px; border-radius: 12px; font-family:DM Sans; font-size:0.75rem; font-weight:bold;">
+                                    {dias_str}
+                                </span>
+                            </div>
+                            <p style="font-family:'DM Sans',sans-serif;font-size:0.95rem;color:#5A5A5A; margin:0.2rem 0 0 0;">
+                                <b>Reporte:</b> {motivo_safe}
+                            </p>
+                            {tareas_html}
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    with c_btn:
+                        st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
+                        if st.button("✔ REPARADA", key=f"rep_{row['id']}", use_container_width=True):
+                            ahora_salida = datetime.now()
+                            db_query("""
+                                UPDATE taller 
+                                SET estado = 'Reparado', fecha_salida = %s 
+                                WHERE id = %s
+                            """, (ahora_salida, row['id']))
+                            st.success(f"{maq_safe} ha sido dada de alta del taller.")
+                            time.sleep(0.8)
+                            st.rerun()
+            else:
+                st.info("Excelente, todas las máquinas están operativas. No hay equipos en taller.")
+
+            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
+            st.markdown("<h3>Historial de Máquinas Reparadas</h3>", unsafe_allow_html=True)
+            
+            reparadas = db_query("""
+                SELECT maquina as Maquina, motivo as 'Falla Reportada', 
+                       fecha_ingreso as 'Fecha Ingreso', fecha_salida as 'Fecha Alta'
+                FROM taller 
+                WHERE estado = 'Reparado' 
+                ORDER BY fecha_salida DESC 
+                LIMIT 100
+            """, fetch=True)
+            
+            if reparadas:
+                df_rep = pd.DataFrame(reparadas)
+                df_rep['Días en Taller'] = (pd.to_datetime(df_rep['Fecha Alta']) - pd.to_datetime(df_rep['Fecha Ingreso'])).dt.days
+                st.dataframe(df_rep, use_container_width=True, hide_index=True)
+            else:
+                st.info("Aún no hay historial de máquinas reparadas.")
+
+
     elif menu == "Alta de Trabajador":
         st.markdown("<h1>Alta de Trabajador</h1>", unsafe_allow_html=True)
         st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
@@ -655,35 +925,35 @@ def admin_panel():
             curr = opc[sel]
             st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
             with st.form("upd"):
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 1", unsafe_allow_html=True)
                 c1, c2, c3 = st.columns([2, 2, 1])
                 t1 = c1.text_input("Tarea 1", value=curr.get('tarea_1', '-'))
                 opts_m1, idx_m1 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_1', '-'))
                 m1 = c2.selectbox("Maquina 1", opts_m1, index=idx_m1)
                 a1 = c3.number_input("Avance 1 (%)", 0, 100, curr.get('avance_1', 0), step=5)
                 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 2", unsafe_allow_html=True)
                 c4, c5, c6 = st.columns([2, 2, 1])
                 t2 = c4.text_input("Tarea 2", value=curr.get('tarea_2', '-'))
                 opts_m2, idx_m2 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_2', '-'))
                 m2 = c5.selectbox("Maquina 2", opts_m2, index=idx_m2)
                 a2 = c6.number_input("Avance 2 (%)", 0, 100, curr.get('avance_2', 0), step=5)
                 
-                st.markdown("### ", unsafe_allow_html=True)
+                st.markdown("### Espacio 3", unsafe_allow_html=True)
                 c7, c8, c9 = st.columns([2, 2, 1])
                 t3 = c7.text_input("Tarea 3", value=curr.get('tarea_3', '-'))
                 opts_m3, idx_m3 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_3', '-'))
                 m3 = c8.selectbox("Maquina 3", opts_m3, index=idx_m3)
                 a3 = c9.number_input("Avance 3 (%)", 0, 100, curr.get('avance_3', 0), step=5)
 
-                st.markdown("###", unsafe_allow_html=True)
+                st.markdown("### Espacio 4", unsafe_allow_html=True)
                 c10, c11, c12 = st.columns([2, 2, 1])
                 t4 = c10.text_input("Tarea 4", value=curr.get('tarea_4', '-'))
                 opts_m4, idx_m4 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_4', '-'))
                 m4 = c11.selectbox("Maquina 4", opts_m4, index=idx_m4)
                 a4 = c12.number_input("Avance 4 (%)", 0, 100, curr.get('avance_4', 0), step=5)
 
-                st.markdown("###", unsafe_allow_html=True)
+                st.markdown("### Espacio 5", unsafe_allow_html=True)
                 c13, c14, c15 = st.columns([2, 2, 1])
                 t5 = c13.text_input("Tarea 5", value=curr.get('tarea_5', '-'))
                 opts_m5, idx_m5 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_5', '-'))
@@ -758,7 +1028,10 @@ def admin_panel():
 
                 for col_t, col_a, col_fi, col_m, nombre_t, avance_t in activas:
                     nombre_t_safe = html.escape(str(nombre_t))
-                    c_info, c_btn = st.columns([5, 1])
+                    
+                    # AJUSTE DE COLUMNAS PARA DAR MÁS ESPACIO AL BOTÓN
+                    c_info, c_btn = st.columns([4, 1])
+                    
                     c_info.markdown(f"""
                         <div style="background:white;border:1px solid #E8E8E8;border-left:3px solid #C8102E;
                                     border-radius:3px;padding:0.7rem 1rem;margin-bottom:0.5rem;">
@@ -771,14 +1044,17 @@ def admin_panel():
                             </p>
                         </div>
                     """, unsafe_allow_html=True)
-                    if c_btn.button("BORRAR", key=f"del_{col_t}_{curr['id']}"):
-                        db_query(
-                            f"UPDATE bitacora SET {col_t}='-', {col_a}=0, {col_fi}=NULL, {col_m}='-' WHERE id=%s",
-                            (curr['id'],)
-                        )
-                        st.warning(f"Actividad eliminada: {nombre_t_safe}")
-                        time.sleep(0.8)
-                        st.rerun()
+                    
+                    with c_btn:
+                        st.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
+                        if st.button("🗑️ BORRAR", key=f"del_{col_t}_{curr['id']}", use_container_width=True):
+                            db_query(
+                                f"UPDATE bitacora SET {col_t}='-', {col_a}=0, {col_fi}=NULL, {col_m}='-' WHERE id=%s",
+                                (curr['id'],)
+                            )
+                            st.warning(f"Actividad eliminada: {nombre_t_safe}")
+                            time.sleep(0.8)
+                            st.rerun()
 
     elif menu == "Bitacora":
         st.markdown("<h1>Bitacora de Actividades Completadas</h1>", unsafe_allow_html=True)
