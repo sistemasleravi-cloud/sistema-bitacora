@@ -766,16 +766,12 @@ def admin_panel():
                     
                     tareas_html = ""
                     if tareas_en_proceso:
-                        tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'>"
-                        tareas_html += "<p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-weight:bold; margin-bottom:0.3rem;'><i class='fas fa-wrench'></i> Actividades en proceso:</p>"
+                        tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'><p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-weight:bold; margin-bottom:0.3rem;'><i class='fas fa-wrench'></i> Actividades en proceso:</p>"
                         for t in tareas_en_proceso:
                             t_safe = html.escape(str(t['tarea']))
                             tr_safe = html.escape(str(t['trabajador']))
-                            tareas_html += f"""
-                                <p style='font-family:DM Sans; font-size:0.85rem; color:#212529; margin:0.1rem 0;'>
-                                    • {tr_safe} está trabajando en: <b>{t_safe}</b> <span style='color:#C8102E;'>({t['avance']}%)</span>
-                                </p>
-                            """
+                            # AQUI ESTA LA CORRECCIÓN: Todo en una sola línea sin espacios al principio
+                            tareas_html += f"<p style='font-family:DM Sans; font-size:0.85rem; color:#212529; margin:0.1rem 0;'>• {tr_safe} está trabajando en: <b>{t_safe}</b> <span style='color:#C8102E;'>({t['avance']}%)</span></p>"
                         tareas_html += "</div>"
                     else:
                         tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'><p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-style:italic; margin:0;'>No hay trabajadores con tareas activas asignadas a esta máquina.</p></div>"
