@@ -243,7 +243,7 @@ def login_screen():
                 display:inline-block;background:#0A0A0A;color:#C8102E;
                 font-family:'Bebas Neue',sans-serif;font-size:2.6rem;
                 letter-spacing:0.2em;padding:0.4rem 1.6rem;
-                border:3px solid #C8102E;margin-bottom:0.5rem;">SISTEMA</div>
+                border:3px solid #C8102E;margin-bottom:0.5rem;">Grupo Constructor Leravi</div>
             <p style="color:#5A5A5A;font-family:'DM Sans',sans-serif;font-size:0.8rem;
                       letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;">
                 Control Administrativo de Personal</p>
@@ -607,7 +607,7 @@ def admin_panel():
             lista_trabajadores_herr = [r['nombre'] for r in res_trab] if res_trab else []
 
             with st.form("form_asignar_herramienta"):
-                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra la salida de una herramienta del almacén/pañol.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra la salida de una herramienta del almacén.</p>", unsafe_allow_html=True)
                 c1, c2, c3 = st.columns(3)
                 
                 if lista_trabajadores_herr:
@@ -615,7 +615,7 @@ def admin_panel():
                 else:
                     trab_herr = c1.selectbox("Trabajador", ["- Ninguno -"])
                     
-                herramienta = c2.text_input("Herramienta a prestar (Ej. Esmeriladora, Multímetro)")
+                herramienta = c2.text_input("Herramienta a prestar")
                 tarea_herr = c3.text_input("Tarea/Motivo de uso (Opcional)")
                 
                 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
