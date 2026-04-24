@@ -17,20 +17,19 @@ def load_css(file_name):
 
 load_css("style.css")
 
-# --- CORRECCIÓN VISUAL BLINDADA ---
+# --- CORRECCIÓN VISUAL BLINDADA (FUSIÓN) ---
 st.markdown("""
     <style>
-        /* 1. Área Principal (Main): Letras negras y en negritas para las pestañas */
-        section.main div[role="radiogroup"] p {
+        /* 1. Regla general (Área Principal): Letras negras y en negritas para las pestañas */
+        .stRadio p {
             color: #1A1A1A !important;
             font-family: 'DM Sans', sans-serif;
             font-weight: 800 !important;
         }
 
-        /* 2. Barra Lateral (Sidebar): Letras puramente blancas */
-        section[data-testid="stSidebar"] div[role="radiogroup"] p {
+        /* 2. Excepción (Barra Lateral): Letras puramente blancas */
+        [data-testid="stSidebar"] .stRadio p {
             color: #FFFFFF !important;
-            font-family: 'DM Sans', sans-serif;
             font-weight: 600 !important;
             opacity: 1 !important; 
         }
@@ -244,7 +243,7 @@ def login_screen():
                 display:inline-block;background:#0A0A0A;color:#C8102E;
                 font-family:'Bebas Neue',sans-serif;font-size:2.6rem;
                 letter-spacing:0.2em;padding:0.4rem 1.6rem;
-                border:3px solid #C8102E;margin-bottom:0.5rem;">Grupo Constructor Leravi</div>
+                border:3px solid #C8102E;margin-bottom:0.5rem;">SISTEMA</div>
             <p style="color:#5A5A5A;font-family:'DM Sans',sans-serif;font-size:0.8rem;
                       letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;">
                 Control Administrativo de Personal</p>
@@ -608,7 +607,7 @@ def admin_panel():
             lista_trabajadores_herr = [r['nombre'] for r in res_trab] if res_trab else []
 
             with st.form("form_asignar_herramienta"):
-                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra la salida de una herramienta del almacén.</p>", unsafe_allow_html=True)
+                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra la salida de una herramienta del almacén/pañol.</p>", unsafe_allow_html=True)
                 c1, c2, c3 = st.columns(3)
                 
                 if lista_trabajadores_herr:
@@ -616,7 +615,7 @@ def admin_panel():
                 else:
                     trab_herr = c1.selectbox("Trabajador", ["- Ninguno -"])
                     
-                herramienta = c2.text_input("Herramienta a prestar")
+                herramienta = c2.text_input("Herramienta a prestar (Ej. Esmeriladora, Multímetro)")
                 tarea_herr = c3.text_input("Tarea/Motivo de uso (Opcional)")
                 
                 st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
@@ -644,7 +643,6 @@ def admin_panel():
             
             if prestadas:
                 for row in prestadas:
-                    # AJUSTE DE COLUMNAS PARA DAR MÁS ESPACIO AL BOTÓN
                     c_info, c_btn = st.columns([4, 1])
                     
                     fecha_p_str = row['fecha_prestamo'].strftime("%Y-%m-%d %H:%M") if isinstance(row['fecha_prestamo'], datetime) else str(row['fecha_prestamo'])
@@ -782,7 +780,6 @@ def admin_panel():
                     else:
                         tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'><p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-style:italic; margin:0;'>No hay trabajadores con tareas activas asignadas a esta máquina.</p></div>"
 
-                    # AJUSTE DE COLUMNAS PARA DAR MÁS ESPACIO AL BOTÓN
                     c_info, c_btn = st.columns([4, 1])
                     
                     c_info.markdown(f"""
@@ -1029,7 +1026,6 @@ def admin_panel():
                 for col_t, col_a, col_fi, col_m, nombre_t, avance_t in activas:
                     nombre_t_safe = html.escape(str(nombre_t))
                     
-                    # AJUSTE DE COLUMNAS PARA DAR MÁS ESPACIO AL BOTÓN
                     c_info, c_btn = st.columns([4, 1])
                     
                     c_info.markdown(f"""
