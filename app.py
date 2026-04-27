@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import mysql.connector
 import bcrypt
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import time
 import plotly.graph_objects as go
 import html
@@ -316,6 +316,11 @@ FH  = "'Bebas Neue', sans-serif"
 FB  = "'Inter', sans-serif"
 TASK_COLORS = [R, "#B00E27", "#980C21", "#800A1C", "#680817"]
 
+AZ_TZ = timezone(timedelta(hours=-7))
+
+def now_az():
+    return datetime.now(AZ_TZ).replace(tzinfo=None)
+
 
 def page_header(titulo, subtitulo=""):
     sub = f'<p style="font-family:{FB};font-size:0.84rem;color:{GRI};margin:0.35rem 0 0 0;font-weight:400;">{subtitulo}</p>' if subtitulo else ""
@@ -499,14 +504,13 @@ def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
                 ("tarea_4","avance_4","fecha_inicio_4","maquina_4"),
                 ("tarea_5","avance_5","fecha_inicio_5","maquina_5")]
     cerradas = []
-    hoy = datetime.now().date()
+    hoy = now_az().date()
     for i, (t, a, fi, m) in enumerate(zip(tareas, avances, fi_list, maquinas)):
         if t and t != '-' and a == 100:
             try:
                 fi_d = fi if hasattr(fi, 'year') else datetime.strptime(str(fi),'%Y-%m-%d').date()
             except ValueError:
-                fi_d = hoy 
-            
+                fi_d = hoy
             mc = str(m).strip().upper() if m else '-'
             db_query("INSERT INTO bitacora_completados (nombre,tarea,maquina,fecha_inicio,fecha_cierre,dias_duracion) VALUES (%s,%s,%s,%s,%s,%s)",
                      (nombre, t, mc, fi_d, hoy, (hoy-fi_d).days))
@@ -579,7 +583,7 @@ def login_screen():
             else:
                 st.error("Usuario o contraseña incorrectos.")
 
-    st.markdown(f"""<p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">&copy; {datetime.now().year} Grupo Constructor Leravi</p>""", unsafe_allow_html=True)
+    st.markdown(f"""<p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">&copy; {now_az().year} Grupo Constructor Leravi</p>""", unsafe_allow_html=True)
 
 
 def admin_panel():
@@ -601,7 +605,6 @@ def admin_panel():
         try:
             with open(logo_encontrado, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
-                # Aplanamos el HTML hacia la izquierda para que Markdown no lo procese como bloque de codigo
                 marca_html += f"""<div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
 <img src="data:image/jpeg;base64,{encoded_string}" width="120" style="border-radius: 8px; border: 1px solid #2A2A2A; margin-bottom: 0.8rem;">
 <p style="font-family:{FH};font-size:1.45rem;color:{BLA};letter-spacing:0.12em;margin:0;line-height:1;">LERAVI</p>
@@ -656,7 +659,7 @@ def admin_panel():
                 <div>
                     <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Admin</p>
                     <p style="font-family:{FB};font-size:0.62rem;color:#444;margin:0;">
-                        {datetime.now().strftime('%d %b %Y')}
+                        {now_az().strftime('%d %b %Y')}
                     </p>
                     <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.0</p>
                 </div>
@@ -705,7 +708,7 @@ def admin_panel():
                 st.dataframe(df[[c for c in cols_ord if c in df.columns]], use_container_width=True, hide_index=True)
 
                 section_title("Avance por Trabajador", "Progreso individual de actividades activas")
-                hoy  = datetime.now().date()
+                hoy  = now_az().date()
 
                 def dias_desde(fi):
                     if not fi or (isinstance(fi, float) and pd.isna(fi)): return 0
@@ -910,7 +913,7 @@ def admin_panel():
                         st.error("El nombre de la herramienta es obligatorio.")
                     else:
                         db_query("INSERT INTO prestamo_herramientas (trabajador,herramienta,tarea,fecha_prestamo,estado) VALUES (%s,%s,%s,%s,'Prestado')",
-                                 (trab_h, herr.strip(), tarea.strip() or "Sin especificar", datetime.now()))
+                                 (trab_h, herr.strip(), tarea.strip() or "Sin especificar", now_az()))
                         st.success(f"Herramienta registrada: {herr.strip()} entregada a {trab_h}.")
                         time.sleep(0.7); st.rerun()
 
@@ -943,7 +946,7 @@ def admin_panel():
                         st.markdown("<div style='margin-top:0.6rem'></div>", unsafe_allow_html=True)
                         if st.button("DEVOLVER", key=f"dev_{row['id']}", use_container_width=True):
                             db_query("UPDATE prestamo_herramientas SET estado='Devuelto',fecha_devolucion=%s WHERE id=%s",
-                                     (datetime.now(), row['id']))
+                                     (now_az(), row['id']))
                             st.success(f"{hs} devuelta al almacen.")
                             time.sleep(0.6); st.rerun()
             else:
@@ -974,14 +977,14 @@ def admin_panel():
                         st.error("Debes especificar la falla o motivo de ingreso.")
                     else:
                         db_query("INSERT INTO taller (maquina,motivo,fecha_ingreso,estado) VALUES (%s,%s,%s,'En Taller')",
-                                 (maq_t, mot_t.strip(), datetime.now()))
+                                 (maq_t, mot_t.strip(), now_az()))
                         st.success(f"Maquina {maq_t} ingresada al taller.")
                         time.sleep(0.7); st.rerun()
 
             section_title("Equipos en Taller", "Maquinas actualmente fuera de servicio")
             en_t  = db_query("SELECT * FROM taller WHERE estado='En Taller' ORDER BY fecha_ingreso DESC", fetch=True)
             bita  = db_query("SELECT * FROM bitacora", fetch=True)
-            ahora = datetime.now()
+            ahora = now_az()
 
             if en_t:
                 for row in en_t:
@@ -1027,7 +1030,7 @@ def admin_panel():
                         st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
                         if st.button("REPARADA", key=f"rep_{row['id']}", use_container_width=True):
                             db_query("UPDATE taller SET estado='Reparado',fecha_salida=%s WHERE id=%s",
-                                     (datetime.now(), row['id']))
+                                     (now_az(), row['id']))
                             st.success(f"{maq_s} dada de alta del taller.")
                             time.sleep(0.6); st.rerun()
             else:
@@ -1054,7 +1057,7 @@ def admin_panel():
             st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
             if st.form_submit_button("REGISTRAR TRABAJADOR", use_container_width=True):
                 if nom.strip():
-                    db_query("INSERT INTO bitacora (nombre,fecha) VALUES (%s,%s)", (nom.strip(), datetime.now().date()))
+                    db_query("INSERT INTO bitacora (nombre,fecha) VALUES (%s,%s)", (nom.strip(), now_az().date()))
                     st.success(f"Trabajador registrado: {nom.strip()}")
                     time.sleep(0.7); st.rerun()
                 else:
@@ -1093,7 +1096,7 @@ def admin_panel():
                 if st.form_submit_button("ASIGNAR TAREA", use_container_width=True):
                     if tar.strip():
                         curr = opc[sel]
-                        hoy  = datetime.now().date()
+                        hoy  = now_az().date()
                         vm   = maq.strip().upper() if maq else '-'
                         asig = False
                         for i in range(1, 6):
@@ -1141,7 +1144,7 @@ def admin_panel():
 
                 st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
                 if st.form_submit_button("GUARDAR CAMBIOS", use_container_width=True):
-                    hoy    = datetime.now().date()
+                    hoy    = now_az().date()
                     prev   = [(curr.get(f'tarea_{i}'), curr.get(f'fecha_inicio_{i}')) for i in range(1,6)]
                     fi     = [curr.get(f'fecha_inicio_{i}') for i in range(1,6)]
                     for idx, (nt, (pt, _)) in enumerate(zip([t1,t2,t3,t4,t5], prev)):
