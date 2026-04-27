@@ -517,6 +517,31 @@ def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
 
 
 def login_screen():
+    ruta_script = os.path.dirname(os.path.abspath(__file__))
+    rutas_posibles = [
+        os.path.join(ruta_script, "logoLeravi.jpeg"),
+        os.path.join(ruta_script, "..", "logoLeravi.jpeg"),
+        "/app/logoLeravi.jpeg",
+        "logoLeravi.jpeg"
+    ]
+
+    logo_encontrado = None
+    for ruta in rutas_posibles:
+        if os.path.exists(ruta):
+            logo_encontrado = ruta
+            break
+
+    img_html = ""
+    if logo_encontrado:
+        try:
+            with open(logo_encontrado, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode()
+                img_html = f'<img src="data:image/jpeg;base64,{encoded_string}" width="110" style="border-radius: 8px; margin: 1.5rem auto; display: block; border: 1px solid #222; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">'
+        except Exception:
+            pass
+    if not img_html:
+        img_html = f'<div style="width:36px;height:2px;background:{R};margin:1rem auto;border-radius:1px;"></div>'
+
     st.markdown(f"""
         <style>
             .stApp {{ background: {NEG} !important; }}
@@ -534,29 +559,15 @@ def login_screen():
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-        <div style="text-align:center;margin-bottom:3rem;">
-            <p style="font-family:{FB};font-size:0.62rem;font-weight:700;letter-spacing:0.32em;
-                      text-transform:uppercase;color:{R};margin:0 0 0.5rem 0;">
-                GRUPO CONSTRUCTOR
-            </p>
-            <p style="font-family:{FH};font-size:4.2rem;color:{BLA};margin:0;
-                      line-height:1;letter-spacing:0.08em;">LERAVI</p>
-            <div style="width:36px;height:2px;background:{R};margin:1rem auto;border-radius:1px;"></div>
-            <p style="font-family:{FB};font-size:0.72rem;color:#444;margin:0;
-                      letter-spacing:0.18em;text-transform:uppercase;font-weight:500;">
-                Sistema de Control Administrativo
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<div style="text-align:center;margin-bottom:3rem;">
+<p style="font-family:{FB};font-size:0.62rem;font-weight:700;letter-spacing:0.32em;text-transform:uppercase;color:{R};margin:0 0 0.5rem 0;">GRUPO CONSTRUCTOR</p>
+<p style="font-family:{FH};font-size:4.2rem;color:{BLA};margin:0;line-height:1;letter-spacing:0.08em;">LERAVI</p>
+{img_html}
+<p style="font-family:{FB};font-size:0.72rem;color:#444;margin:0;letter-spacing:0.18em;text-transform:uppercase;font-weight:500;">Sistema de Control Administrativo</p>
+</div>""", unsafe_allow_html=True)
 
     with st.form("login_form"):
-        st.markdown(f"""
-            <p style="font-family:{FB};font-size:0.65rem;font-weight:600;letter-spacing:0.18em;
-                      text-transform:uppercase;color:#444;text-align:center;margin:0 0 1.8rem 0;">
-                Acceso al sistema
-            </p>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<p style="font-family:{FB};font-size:0.65rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#444;text-align:center;margin:0 0 1.8rem 0;">Acceso al sistema</p>""", unsafe_allow_html=True)
         usuario = st.text_input("Usuario", placeholder="Nombre de usuario")
         clave   = st.text_input("Contraseña", type="password", placeholder="Contraseña")
         st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
@@ -568,11 +579,7 @@ def login_screen():
             else:
                 st.error("Usuario o contraseña incorrectos.")
 
-    st.markdown(f"""
-        <p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">
-            &copy; {datetime.now().year} Grupo Constructor Leravi
-        </p>
-    """, unsafe_allow_html=True)
+    st.markdown(f"""<p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">&copy; {datetime.now().year} Grupo Constructor Leravi</p>""", unsafe_allow_html=True)
 
 
 def admin_panel():
@@ -651,6 +658,7 @@ def admin_panel():
                     <p style="font-family:{FB};font-size:0.62rem;color:#444;margin:0;">
                         {datetime.now().strftime('%d %b %Y')}
                     </p>
+                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.0</p>
                 </div>
             </div>
         </div>
