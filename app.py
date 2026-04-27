@@ -6,6 +6,8 @@ from datetime import datetime
 import time
 import plotly.graph_objects as go
 import html
+import os
+import base64
 
 st.set_page_config(
     page_title="Control Administrativo · Leravi",
@@ -62,8 +64,6 @@ html, body, [class*="css"] { font-family: var(--font) !important; }
     min-width: 240px !important;
 }
 [data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
-
-
 
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
@@ -502,7 +502,11 @@ def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
     hoy = datetime.now().date()
     for i, (t, a, fi, m) in enumerate(zip(tareas, avances, fi_list, maquinas)):
         if t and t != '-' and a == 100:
-            fi_d = fi if hasattr(fi, 'year') else (datetime.strptime(str(fi),'%Y-%m-%d').date() if fi else hoy)
+            try:
+                fi_d = fi if hasattr(fi, 'year') else datetime.strptime(str(fi),'%Y-%m-%d').date()
+            except ValueError:
+                fi_d = hoy 
+            
             mc = str(m).strip().upper() if m else '-'
             db_query("INSERT INTO bitacora_completados (nombre,tarea,maquina,fecha_inicio,fecha_cierre,dias_duracion) VALUES (%s,%s,%s,%s,%s,%s)",
                      (nombre, t, mc, fi_d, hoy, (hoy-fi_d).days))
@@ -554,7 +558,7 @@ def login_screen():
             </p>
         """, unsafe_allow_html=True)
         usuario = st.text_input("Usuario", placeholder="Nombre de usuario")
-        clave   = st.text_input("Contrasena", type="password", placeholder="Contrasena")
+        clave   = st.text_input("Contraseña", type="password", placeholder="Contraseña")
         st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
         if st.form_submit_button("INGRESAR", use_container_width=True):
             res = db_query("SELECT * FROM usuarios WHERE usuario=%s", (usuario,), fetch=True)
@@ -562,7 +566,7 @@ def login_screen():
                 st.session_state['logged'] = True
                 st.rerun()
             else:
-                st.error("Usuario o contrasena incorrectos.")
+                st.error("Usuario o contraseña incorrectos.")
 
     st.markdown(f"""
         <p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">
@@ -572,16 +576,37 @@ def login_screen():
 
 
 def admin_panel():
-    st.sidebar.markdown(f"""
-        <div style="padding:1.8rem 1.4rem 1.4rem 1.4rem;border-bottom:1px solid #1A1A1A;">
-            <p style="font-family:{FH};font-size:1.45rem;color:{BLA};letter-spacing:0.12em;
-                      margin:0;line-height:1;">LERAVI</p>
-            <p style="font-family:{FB};font-size:0.58rem;color:#3A3A3A;letter-spacing:0.18em;
-                      text-transform:uppercase;margin:0.3rem 0 0 0;font-weight:500;">
-                Control Administrativo
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
+    ruta_script = os.path.dirname(os.path.abspath(__file__))
+    rutas_posibles = [
+        os.path.join(ruta_script, "logoLeravi.jpeg"),
+        os.path.join(ruta_script, "..", "logoLeravi.jpeg"),
+        "/app/logoLeravi.jpeg"
+    ]
+
+    logo_encontrado = None
+    for ruta in rutas_posibles:
+        if os.path.exists(ruta):
+            logo_encontrado = ruta
+            break
+
+    marca_html = ""
+    if logo_encontrado:
+        try:
+            with open(logo_encontrado, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read()).decode()
+                # Aplanamos el HTML hacia la izquierda para que Markdown no lo procese como bloque de codigo
+                marca_html += f"""<div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
+<img src="data:image/jpeg;base64,{encoded_string}" width="120" style="border-radius: 8px; border: 1px solid #2A2A2A; margin-bottom: 0.8rem;">
+<p style="font-family:{FH};font-size:1.45rem;color:{BLA};letter-spacing:0.12em;margin:0;line-height:1;">LERAVI</p>
+<p style="font-family:{FB};font-size:0.58rem;color:#3A3A3A;letter-spacing:0.18em;text-transform:uppercase;margin:0.2rem 0 0 0;font-weight:500;">Control Administrativo</p>
+</div>
+<div style="padding: 0 1.4rem;"><hr style="border: none; border-top: 1px solid #1A1A1A; margin: 0;"></div>"""
+        except Exception as e:
+            marca_html += f'<div style="text-align:center; padding:1.5rem;"><p style="color:red;font-size:0.8rem;">Error: {str(e)}</p></div>'
+    else:
+        marca_html += f'<div style="text-align:center; padding:1.5rem;"><p style="color:var(--gris);font-size:0.8rem;font-style:italic;">Logo no disponible</p></div>'
+
+    st.sidebar.markdown(marca_html, unsafe_allow_html=True)
 
     st.sidebar.markdown(f"""
         <p style="font-family:{FB};font-size:0.58rem;font-weight:700;letter-spacing:0.18em;
