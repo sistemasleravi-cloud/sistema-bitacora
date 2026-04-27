@@ -5,46 +5,366 @@ import bcrypt
 from datetime import datetime
 import time
 import plotly.graph_objects as go
-import os
 import html
 
-st.set_page_config(page_title="Control Administrativo", layout="wide", page_icon="")
+st.set_page_config(
+    page_title="Control Administrativo · Leravi",
+    layout="wide",
+    page_icon="",
+    initial_sidebar_state="expanded"
+)
 
-def load_css(file_name):
-    if os.path.exists(file_name):
-        with open(file_name) as f:
-            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
-
-load_css("style.css")
-
-# --- CORRECCIÓN VISUAL BLINDADA (FUSIÓN) ---
 st.markdown("""
-    <style>
-        /* 1. Regla general (Área Principal): Letras negras y en negritas para las pestañas */
-        .stRadio p {
-            color: #1A1A1A !important;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 800 !important;
-        }
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Bebas+Neue&display=swap');
 
-        /* 2. Excepción (Barra Lateral): Letras puramente blancas */
-        [data-testid="stSidebar"] .stRadio p {
-            color: #FFFFFF !important;
-            font-weight: 600 !important;
-            opacity: 1 !important; 
-        }
-        
-        /* 3. Evitar desbordamiento de texto en botones */
-        .stButton > button {
-            height: auto !important;
-            white-space: normal !important;
-            min-height: 2.5rem !important;
-            line-height: 1.3 !important;
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-        }
-    </style>
+:root {
+    --rojo:     #C8102E;
+    --rojo-dk:  #A50D26;
+    --negro:    #0A0A0A;
+    --ink:      #0F0F0F;
+    --surface:  #161616;
+    --mid:      #1E1E1E;
+    --borde:    #2A2A2A;
+    --gris-d:   #5A5A5A;
+    --gris:     #8A8A8A;
+    --gris-l:   #C8C8C8;
+    --fondo:    #F4F4F6;
+    --blanco:   #FFFFFF;
+    --card:     #FFFFFF;
+    --verde:    #16A34A;
+    --amarillo: #D97706;
+    --danger:   #DC2626;
+    --r:        8px;
+    --t:        all 0.15s ease;
+    --sh:       0 1px 2px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.05);
+    --sh-md:    0 4px 20px rgba(0,0,0,0.08);
+    --font:     'Inter', sans-serif;
+    --font-d:   'Bebas Neue', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, [class*="css"] { font-family: var(--font) !important; }
+#MainMenu, footer, header { visibility: hidden; }
+
+.stApp { background: var(--fondo) !important; }
+.block-container {
+    padding: 2.5rem 3rem 4rem 3rem !important;
+    max-width: 1320px !important;
+    margin: 0 auto !important;
+}
+
+[data-testid="stSidebar"] {
+    background: var(--negro) !important;
+    border-right: 1px solid var(--borde) !important;
+    width: 240px !important;
+    min-width: 240px !important;
+}
+[data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
+
+[data-testid="stSidebar"] * {
+    font-family: var(--font) !important;
+}
+
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] label {
+    color: var(--gris) !important;
+}
+
+[data-testid="stSidebar"] .stRadio > div {
+    flex-direction: column !important;
+    gap: 0 !important;
+}
+
+[data-testid="stSidebar"] .stRadio > div > label {
+    display: flex !important;
+    align-items: center !important;
+    padding: 0.72rem 1.4rem !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border-left: 2px solid transparent !important;
+    cursor: pointer !important;
+    transition: var(--t) !important;
+}
+[data-testid="stSidebar"] .stRadio > div > label:hover {
+    background: rgba(255,255,255,0.04) !important;
+    border-left-color: var(--gris-d) !important;
+}
+[data-testid="stSidebar"] .stRadio p {
+    font-size: 0.82rem !important;
+    font-weight: 500 !important;
+    color: #AAAAAA !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+}
+
+[data-testid="stSidebar"] .stButton > button {
+    background: transparent !important;
+    border: 1px solid var(--borde) !important;
+    color: var(--gris-d) !important;
+    font-family: var(--font) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+    padding: 0.5rem 1rem !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    transition: var(--t) !important;
+}
+[data-testid="stSidebar"] .stButton > button:hover {
+    border-color: var(--rojo) !important;
+    color: var(--rojo) !important;
+    background: rgba(200,16,46,0.05) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.stButton > button {
+    background: var(--rojo) !important;
+    color: var(--blanco) !important;
+    border: none !important;
+    border-radius: 6px !important;
+    font-family: var(--font) !important;
+    font-size: 0.76rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    padding: 0.62rem 1.5rem !important;
+    height: auto !important;
+    min-height: 2.5rem !important;
+    white-space: normal !important;
+    line-height: 1.35 !important;
+    box-shadow: 0 1px 3px rgba(200,16,46,0.30) !important;
+    transition: var(--t) !important;
+}
+.stButton > button:hover {
+    background: var(--rojo-dk) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(200,16,46,0.36) !important;
+}
+.stButton > button:active { transform: translateY(0) !important; }
+
+[data-testid="stForm"] {
+    background: var(--card) !important;
+    border: 1px solid #E8E8EA !important;
+    border-radius: var(--r) !important;
+    padding: 2rem !important;
+    box-shadow: var(--sh) !important;
+}
+
+.stTextInput > div > div > input,
+.stNumberInput > div > div > input {
+    border: 1.5px solid #E2E2E5 !important;
+    border-radius: 6px !important;
+    background: var(--fondo) !important;
+    color: var(--ink) !important;
+    font-family: var(--font) !important;
+    font-size: 0.88rem !important;
+    padding: 0.58rem 0.9rem !important;
+    transition: var(--t) !important;
+}
+.stTextInput > div > div > input:focus,
+.stNumberInput > div > div > input:focus {
+    border-color: var(--rojo) !important;
+    background: var(--blanco) !important;
+    box-shadow: 0 0 0 3px rgba(200,16,46,0.10) !important;
+    outline: none !important;
+}
+.stTextInput > div > div > input::placeholder { color: #B0B0B8 !important; }
+
+.stTextInput label,
+.stNumberInput label,
+.stSelectbox label {
+    font-family: var(--font) !important;
+    font-size: 0.7rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    color: var(--gris) !important;
+}
+
+.stSelectbox > div > div {
+    border: 1.5px solid #E2E2E5 !important;
+    border-radius: 6px !important;
+    background: var(--fondo) !important;
+    font-family: var(--font) !important;
+    font-size: 0.88rem !important;
+    transition: var(--t) !important;
+}
+.stSelectbox > div > div:focus-within {
+    border-color: var(--rojo) !important;
+    box-shadow: 0 0 0 3px rgba(200,16,46,0.10) !important;
+}
+
+.stNumberInput button {
+    background: var(--fondo) !important;
+    border: 1.5px solid #E2E2E5 !important;
+    color: var(--ink) !important;
+    min-height: unset !important;
+    box-shadow: none !important;
+    transition: var(--t) !important;
+}
+.stNumberInput button:hover {
+    background: var(--rojo) !important;
+    color: var(--blanco) !important;
+    border-color: var(--rojo) !important;
+    transform: none !important;
+}
+
+.stRadio > div { gap: 0.4rem !important; flex-wrap: wrap !important; }
+.stRadio label {
+    background: var(--blanco) !important;
+    border: 1.5px solid #E2E2E5 !important;
+    border-radius: 6px !important;
+    padding: 0.42rem 1.1rem !important;
+    cursor: pointer !important;
+    transition: var(--t) !important;
+    box-shadow: var(--sh) !important;
+}
+.stRadio label:hover { border-color: var(--rojo) !important; }
+.stRadio p {
+    font-family: var(--font) !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    color: var(--ink) !important;
+    margin: 0 !important;
+}
+
+[data-testid="stSidebar"] .stRadio label {
+    border-radius: 0 !important;
+    border: none !important;
+    border-left: 2px solid transparent !important;
+    background: transparent !important;
+    padding: 0.72rem 1.4rem !important;
+    box-shadow: none !important;
+}
+
+h1 {
+    font-family: var(--font) !important;
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.02em !important;
+    color: var(--ink) !important;
+    margin: 0 !important;
+    line-height: 1.2 !important;
+}
+h2 {
+    font-family: var(--font) !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+    color: var(--ink) !important;
+    margin: 0 !important;
+}
+h3 {
+    font-family: var(--font) !important;
+    font-size: 0.72rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: var(--gris) !important;
+    margin: 0 !important;
+}
+
+[data-testid="stDataFrame"] {
+    border-radius: var(--r) !important;
+    overflow: hidden !important;
+    box-shadow: var(--sh) !important;
+    border: 1px solid #E8E8EA !important;
+}
+
+[data-testid="stAlert"] {
+    border-radius: 6px !important;
+    font-family: var(--font) !important;
+    font-size: 0.84rem !important;
+}
+
+[data-testid="stPlotlyChart"] {
+    background: var(--blanco) !important;
+    border: 1px solid #E8E8EA !important;
+    border-radius: var(--r) !important;
+    overflow: hidden !important;
+    box-shadow: var(--sh) !important;
+}
+
+[data-testid="column"] { padding: 0 0.4rem !important; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D0D0D5; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--rojo); }
+</style>
 """, unsafe_allow_html=True)
+
+R   = "#C8102E"
+RDK = "#A50D26"
+NEG = "#0A0A0A"
+INK = "#0F0F0F"
+GRI = "#8A8A8A"
+GRL = "#E2E2E5"
+FON = "#F4F4F6"
+BLA = "#FFFFFF"
+VER = "#16A34A"
+AMA = "#D97706"
+PEL = "#DC2626"
+FH  = "'Bebas Neue', sans-serif"
+FB  = "'Inter', sans-serif"
+TASK_COLORS = [R, "#B00E27", "#980C21", "#800A1C", "#680817"]
+
+
+def page_header(titulo, subtitulo=""):
+    sub = f'<p style="font-family:{FB};font-size:0.84rem;color:{GRI};margin:0.35rem 0 0 0;font-weight:400;">{subtitulo}</p>' if subtitulo else ""
+    st.markdown(f"""
+        <div style="margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid {GRL};">
+            <div style="display:flex;align-items:center;gap:0.8rem;">
+                <div style="width:3px;height:1.8rem;background:{R};border-radius:2px;flex-shrink:0;"></div>
+                <div>
+                    <h1>{titulo}</h1>
+                    {sub}
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+
+def metric_card(col, label, valor):
+    col.markdown(f"""
+        <div style="background:{NEG};border-radius:8px;padding:1.5rem 1.8rem;
+                    box-shadow:0 4px 24px rgba(0,0,0,0.22);position:relative;overflow:hidden;">
+            <div style="position:absolute;inset:0 0 auto 0;height:2px;background:{R};"></div>
+            <p style="font-family:{FB};font-size:0.65rem;font-weight:600;letter-spacing:0.14em;
+                      text-transform:uppercase;color:#555;margin:0 0 0.6rem 0;">{label}</p>
+            <p style="font-family:{FH};font-size:2.8rem;color:{BLA};margin:0;line-height:1;
+                      letter-spacing:0.03em;">{valor}</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+
+def section_title(titulo, subtitulo=""):
+    sub = f'<p style="font-family:{FB};font-size:0.8rem;color:{GRI};margin:0.2rem 0 0 0;">{subtitulo}</p>' if subtitulo else ""
+    st.markdown(f"""
+        <div style="margin:2.5rem 0 1.2rem 0;">
+            <h2>{titulo}</h2>
+            {sub}
+        </div>
+    """, unsafe_allow_html=True)
+
+
+def row_card(col, contenido_html, borde_color=R):
+    col.markdown(f"""
+        <div style="background:{BLA};border:1px solid {GRL};border-left:3px solid {borde_color};
+                    border-radius:8px;padding:0.9rem 1.2rem;margin-bottom:0.5rem;
+                    box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+            {contenido_html}
+        </div>
+    """, unsafe_allow_html=True)
+
 
 @st.cache_resource
 def init_connection():
@@ -60,76 +380,56 @@ def init_connection():
             cursor = conn.cursor()
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS {st.secrets['mysql']['database']}")
             cursor.execute(f"USE {st.secrets['mysql']['database']}")
-
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS bitacora (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    nombre VARCHAR(100) NOT NULL,
-                    fecha DATE NOT NULL,
-                    tarea_1 VARCHAR(255) DEFAULT '-', avance_1 INT DEFAULT 0, fecha_inicio_1 DATE DEFAULT NULL, maquina_1 VARCHAR(255) DEFAULT '-',
-                    tarea_2 VARCHAR(255) DEFAULT '-', avance_2 INT DEFAULT 0, fecha_inicio_2 DATE DEFAULT NULL, maquina_2 VARCHAR(255) DEFAULT '-',
-                    tarea_3 VARCHAR(255) DEFAULT '-', avance_3 INT DEFAULT 0, fecha_inicio_3 DATE DEFAULT NULL, maquina_3 VARCHAR(255) DEFAULT '-',
-                    tarea_4 VARCHAR(255) DEFAULT '-', avance_4 INT DEFAULT 0, fecha_inicio_4 DATE DEFAULT NULL, maquina_4 VARCHAR(255) DEFAULT '-',
-                    tarea_5 VARCHAR(255) DEFAULT '-', avance_5 INT DEFAULT 0, fecha_inicio_5 DATE DEFAULT NULL, maquina_5 VARCHAR(255) DEFAULT '-'
-                )
-            """)
-
+                    nombre VARCHAR(100) NOT NULL, fecha DATE NOT NULL,
+                    tarea_1 VARCHAR(255) DEFAULT '-', avance_1 INT DEFAULT 0,
+                    fecha_inicio_1 DATE DEFAULT NULL, maquina_1 VARCHAR(255) DEFAULT '-',
+                    tarea_2 VARCHAR(255) DEFAULT '-', avance_2 INT DEFAULT 0,
+                    fecha_inicio_2 DATE DEFAULT NULL, maquina_2 VARCHAR(255) DEFAULT '-',
+                    tarea_3 VARCHAR(255) DEFAULT '-', avance_3 INT DEFAULT 0,
+                    fecha_inicio_3 DATE DEFAULT NULL, maquina_3 VARCHAR(255) DEFAULT '-',
+                    tarea_4 VARCHAR(255) DEFAULT '-', avance_4 INT DEFAULT 0,
+                    fecha_inicio_4 DATE DEFAULT NULL, maquina_4 VARCHAR(255) DEFAULT '-',
+                    tarea_5 VARCHAR(255) DEFAULT '-', avance_5 INT DEFAULT 0,
+                    fecha_inicio_5 DATE DEFAULT NULL, maquina_5 VARCHAR(255) DEFAULT '-'
+                )""")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS bitacora_completados (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    nombre VARCHAR(100) NOT NULL,
-                    tarea VARCHAR(255) NOT NULL,
-                    maquina VARCHAR(255) DEFAULT '-',
-                    fecha_inicio DATE NOT NULL,
-                    fecha_cierre DATE NOT NULL,
-                    dias_duracion INT DEFAULT 0
-                )
-            """)
-
+                    nombre VARCHAR(100) NOT NULL, tarea VARCHAR(255) NOT NULL,
+                    maquina VARCHAR(255) DEFAULT '-', fecha_inicio DATE NOT NULL,
+                    fecha_cierre DATE NOT NULL, dias_duracion INT DEFAULT 0
+                )""")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    usuario VARCHAR(50) UNIQUE NOT NULL,
-                    password_hash VARCHAR(255) NOT NULL
-                )
-            """)
-
+                    usuario VARCHAR(50) UNIQUE NOT NULL, password_hash VARCHAR(255) NOT NULL
+                )""")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS maquinas (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    nombre VARCHAR(100) UNIQUE NOT NULL
-                )
-            """)
-
+                    id INT AUTO_INCREMENT PRIMARY KEY, nombre VARCHAR(100) UNIQUE NOT NULL
+                )""")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS prestamo_herramientas (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    trabajador VARCHAR(100) NOT NULL,
-                    herramienta VARCHAR(255) NOT NULL,
-                    tarea VARCHAR(255) NOT NULL,
-                    fecha_prestamo DATETIME NOT NULL,
-                    fecha_devolucion DATETIME DEFAULT NULL,
-                    estado VARCHAR(20) DEFAULT 'Prestado'
-                )
-            """)
-
+                    trabajador VARCHAR(100) NOT NULL, herramienta VARCHAR(255) NOT NULL,
+                    tarea VARCHAR(255) NOT NULL, fecha_prestamo DATETIME NOT NULL,
+                    fecha_devolucion DATETIME DEFAULT NULL, estado VARCHAR(20) DEFAULT 'Prestado'
+                )""")
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS taller (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    maquina VARCHAR(255) NOT NULL,
-                    motivo VARCHAR(255) NOT NULL,
-                    fecha_ingreso DATETIME NOT NULL,
-                    fecha_salida DATETIME DEFAULT NULL,
+                    maquina VARCHAR(255) NOT NULL, motivo VARCHAR(255) NOT NULL,
+                    fecha_ingreso DATETIME NOT NULL, fecha_salida DATETIME DEFAULT NULL,
                     estado VARCHAR(20) DEFAULT 'En Taller'
-                )
-            """)
-
+                )""")
             cursor.execute("SELECT * FROM usuarios WHERE usuario = 'Admin'")
             if not cursor.fetchone():
-                hashed = bcrypt.hashpw("SistemaMantenimiento0611".encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+                hashed = bcrypt.hashpw("SistemaMantenimiento0611".encode(), bcrypt.gensalt()).decode()
                 cursor.execute("INSERT INTO usuarios (usuario, password_hash) VALUES ('Admin', %s)", (hashed,))
-
-            columnas_nuevas = [
+            for q in [
                 "ALTER TABLE bitacora ADD COLUMN maquina_1 VARCHAR(255) DEFAULT '-'",
                 "ALTER TABLE bitacora ADD COLUMN maquina_2 VARCHAR(255) DEFAULT '-'",
                 "ALTER TABLE bitacora ADD COLUMN maquina_3 VARCHAR(255) DEFAULT '-'",
@@ -141,1006 +441,804 @@ def init_connection():
                 "ALTER TABLE bitacora ADD COLUMN avance_5 INT DEFAULT 0",
                 "ALTER TABLE bitacora ADD COLUMN fecha_inicio_5 DATE DEFAULT NULL",
                 "ALTER TABLE bitacora ADD COLUMN maquina_5 VARCHAR(255) DEFAULT '-'",
-                "ALTER TABLE bitacora_completados ADD COLUMN maquina VARCHAR(255) DEFAULT '-'"
-            ]
-            
-            for col_query in columnas_nuevas:
-                try:
-                    cursor.execute(col_query)
-                    conn.commit()
-                except:
-                    pass
-
+                "ALTER TABLE bitacora_completados ADD COLUMN maquina VARCHAR(255) DEFAULT '-'",
+            ]:
+                try: cursor.execute(q); conn.commit()
+                except: pass
             try:
-                cursor.execute("UPDATE bitacora_completados SET maquina = TRIM(UPPER(maquina)) WHERE maquina IS NOT NULL AND maquina != '-'")
-                cursor.execute("UPDATE maquinas SET nombre = TRIM(UPPER(nombre)) WHERE nombre IS NOT NULL")
+                cursor.execute("UPDATE bitacora_completados SET maquina=TRIM(UPPER(maquina)) WHERE maquina IS NOT NULL AND maquina!='-'")
+                cursor.execute("UPDATE maquinas SET nombre=TRIM(UPPER(nombre)) WHERE nombre IS NOT NULL")
                 conn.commit()
-            except:
-                pass
-
-            conn.commit()
-            cursor.close()
+            except: pass
+            conn.commit(); cursor.close()
             return conn
         except:
-            retries -= 1
-            time.sleep(3)
+            retries -= 1; time.sleep(3)
     return None
+
 
 conn = init_connection()
 
+
 def db_query(query, params=None, fetch=False):
-    try:
-        conn.ping(reconnect=True, attempts=3, delay=1)
-    except:
-        pass
-        
+    try: conn.ping(reconnect=True, attempts=3, delay=1)
+    except: pass
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params or ())
     if fetch:
-        res = cursor.fetchall()
-        cursor.close()
-        return res
-    conn.commit()
-    cursor.close()
+        res = cursor.fetchall(); cursor.close(); return res
+    conn.commit(); cursor.close()
 
-def check_password(password, hashed):
-    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
-def cerrar_actividades_completadas(trabajador_id, nombre, fi1, fi2, fi3, fi4, fi5, t1, a1, m1, t2, a2, m2, t3, a3, m3, t4, a4, m4, t5, a5, m5):
-    tareas = [t1, t2, t3, t4, t5]
-    avances = [a1, a2, a3, a4, a5]
-    fechas_inicio = [fi1, fi2, fi3, fi4, fi5]
-    maquinas = [m1, m2, m3, m4, m5]
-    slots = [("tarea_1", "avance_1", "fecha_inicio_1", "maquina_1"),
-             ("tarea_2", "avance_2", "fecha_inicio_2", "maquina_2"),
-             ("tarea_3", "avance_3", "fecha_inicio_3", "maquina_3"),
-             ("tarea_4", "avance_4", "fecha_inicio_4", "maquina_4"),
-             ("tarea_5", "avance_5", "fecha_inicio_5", "maquina_5")]
-    cerradas = []
-    hoy = datetime.now().date()
+def check_password(pw, hashed):
+    return bcrypt.checkpw(pw.encode(), hashed.encode())
 
-    for i, (t, a, fi, m) in enumerate(zip(tareas, avances, fechas_inicio, maquinas)):
-        if t and t != '-' and a == 100:
-            if fi:
-                fi_date = fi if hasattr(fi, 'year') else datetime.strptime(str(fi), '%Y-%m-%d').date()
-            else:
-                fi_date = hoy
-            dias = (hoy - fi_date).days
-            m_clean = str(m).strip().upper() if m else '-'
-            db_query(
-                "INSERT INTO bitacora_completados (nombre, tarea, maquina, fecha_inicio, fecha_cierre, dias_duracion) VALUES (%s, %s, %s, %s, %s, %s)",
-                (nombre, t, m_clean, fi_date, hoy, dias)
-            )
-            col_t, col_a, col_fi, col_m = slots[i]
-            db_query(
-                f"UPDATE bitacora SET {col_t}='-', {col_a}=0, {col_fi}=NULL, {col_m}='-' WHERE id=%s",
-                (trabajador_id,)
-            )
-            cerradas.append(t)
-
-    return cerradas
 
 def obtener_lista_maquinas():
     res = db_query("SELECT nombre FROM maquinas ORDER BY nombre ASC", fetch=True)
     lista = ["-"]
-    if res:
-        lista.extend([str(r['nombre']).strip().upper() for r in res])
+    if res: lista.extend([str(r['nombre']).strip().upper() for r in res])
     return sorted(list(set(lista)))
 
+
 def asegurar_valor_en_lista(lista, valor):
-    if not valor:
-        valor = "-"
-    valor = str(valor).strip().upper()
+    valor = str(valor).strip().upper() if valor else "-"
     opciones = list(lista)
-    if valor not in opciones:
-        opciones.append(valor)
+    if valor not in opciones: opciones.append(valor)
     return opciones, opciones.index(valor)
 
+
+def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
+                                   t1, a1, m1, t2, a2, m2, t3, a3, m3, t4, a4, m4, t5, a5, m5):
+    tareas   = [t1,t2,t3,t4,t5]
+    avances  = [a1,a2,a3,a4,a5]
+    fi_list  = [fi1,fi2,fi3,fi4,fi5]
+    maquinas = [m1,m2,m3,m4,m5]
+    slots    = [("tarea_1","avance_1","fecha_inicio_1","maquina_1"),
+                ("tarea_2","avance_2","fecha_inicio_2","maquina_2"),
+                ("tarea_3","avance_3","fecha_inicio_3","maquina_3"),
+                ("tarea_4","avance_4","fecha_inicio_4","maquina_4"),
+                ("tarea_5","avance_5","fecha_inicio_5","maquina_5")]
+    cerradas = []
+    hoy = datetime.now().date()
+    for i, (t, a, fi, m) in enumerate(zip(tareas, avances, fi_list, maquinas)):
+        if t and t != '-' and a == 100:
+            fi_d = fi if hasattr(fi, 'year') else (datetime.strptime(str(fi),'%Y-%m-%d').date() if fi else hoy)
+            mc = str(m).strip().upper() if m else '-'
+            db_query("INSERT INTO bitacora_completados (nombre,tarea,maquina,fecha_inicio,fecha_cierre,dias_duracion) VALUES (%s,%s,%s,%s,%s,%s)",
+                     (nombre, t, mc, fi_d, hoy, (hoy-fi_d).days))
+            ct,ca,cfi,cm = slots[i]
+            db_query(f"UPDATE bitacora SET {ct}='-',{ca}=0,{cfi}=NULL,{cm}='-' WHERE id=%s", (tid,))
+            cerradas.append(t)
+    return cerradas
+
+
 def login_screen():
-    st.markdown("""
-        <div style="text-align:center;padding:3rem 0 2rem 0;">
-            <div style="
-                display:inline-block;background:#0A0A0A;color:#C8102E;
-                font-family:'Bebas Neue',sans-serif;font-size:2.6rem;
-                letter-spacing:0.2em;padding:0.4rem 1.6rem;
-                border:3px solid #C8102E;margin-bottom:0.5rem;">Grupo Constructor Leravi</div>
-            <p style="color:#5A5A5A;font-family:'DM Sans',sans-serif;font-size:0.8rem;
-                      letter-spacing:0.2em;text-transform:uppercase;margin-top:0.5rem;">
-                Control Administrativo de Personal</p>
+    st.markdown(f"""
+        <style>
+            .stApp {{ background: {NEG} !important; }}
+            .block-container {{ max-width: 440px !important; margin: 0 auto !important; padding-top: 9vh !important; }}
+            .stTextInput > div > div > input {{
+                background: #1A1A1A !important; color: {BLA} !important; border-color: #2E2E2E !important;
+            }}
+            .stTextInput > div > div > input:focus {{ background: #222 !important; border-color: {R} !important; }}
+            .stTextInput label {{ color: #666 !important; }}
+            [data-testid="stForm"] {{
+                background: #111 !important; border: 1px solid #222 !important;
+                border-radius: 12px !important; padding: 2.5rem !important;
+                box-shadow: 0 24px 64px rgba(0,0,0,0.6) !important;
+            }}
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f"""
+        <div style="text-align:center;margin-bottom:3rem;">
+            <p style="font-family:{FB};font-size:0.62rem;font-weight:700;letter-spacing:0.32em;
+                      text-transform:uppercase;color:{R};margin:0 0 0.5rem 0;">
+                GRUPO CONSTRUCTOR
+            </p>
+            <p style="font-family:{FH};font-size:4.2rem;color:{BLA};margin:0;
+                      line-height:1;letter-spacing:0.08em;">LERAVI</p>
+            <div style="width:36px;height:2px;background:{R};margin:1rem auto;border-radius:1px;"></div>
+            <p style="font-family:{FB};font-size:0.72rem;color:#444;margin:0;
+                      letter-spacing:0.18em;text-transform:uppercase;font-weight:500;">
+                Sistema de Control Administrativo
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
-    _, center, _ = st.columns([1, 1, 1])
-    with center:
-        with st.form("login_form"):
-            st.markdown("<p style='font-family:DM Sans;font-size:0.75rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:#5A5A5A;margin-bottom:0.2rem;'>Acceso Restringido</p>", unsafe_allow_html=True)
-            user = st.text_input("Usuario")
-            pw   = st.text_input("Contrasena", type="password")
-            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-            if st.form_submit_button("INGRESAR"):
-                res = db_query("SELECT * FROM usuarios WHERE usuario = %s", (user,), fetch=True)
-                if res and check_password(pw, res[0]['password_hash']):
-                    st.session_state['logged'] = True
-                    st.rerun()
-                else:
-                    st.error("Credenciales incorrectas")
+    with st.form("login_form"):
+        st.markdown(f"""
+            <p style="font-family:{FB};font-size:0.65rem;font-weight:600;letter-spacing:0.18em;
+                      text-transform:uppercase;color:#444;text-align:center;margin:0 0 1.8rem 0;">
+                Acceso al sistema
+            </p>
+        """, unsafe_allow_html=True)
+        usuario = st.text_input("Usuario", placeholder="Nombre de usuario")
+        clave   = st.text_input("Contrasena", type="password", placeholder="Contrasena")
+        st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
+        if st.form_submit_button("INGRESAR", use_container_width=True):
+            res = db_query("SELECT * FROM usuarios WHERE usuario=%s", (usuario,), fetch=True)
+            if res and check_password(clave, res[0]['password_hash']):
+                st.session_state['logged'] = True
+                st.rerun()
+            else:
+                st.error("Usuario o contrasena incorrectos.")
+
+    st.markdown(f"""
+        <p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">
+            &copy; {datetime.now().year} Grupo Constructor Leravi
+        </p>
+    """, unsafe_allow_html=True)
+
 
 def admin_panel():
-    st.sidebar.markdown("""
-        <div style="padding:1rem 0 0.5rem 0;">
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.2em;color:white;">CONTROL</span>
-            <span style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:0.2em;color:#C8102E;"> ADMIN</span>
-            <hr style="border-color:#C8102E;margin:0.5rem 0 1rem 0;">
+    st.sidebar.markdown(f"""
+        <div style="padding:1.8rem 1.4rem 1.4rem 1.4rem;border-bottom:1px solid #1A1A1A;">
+            <p style="font-family:{FH};font-size:1.45rem;color:{BLA};letter-spacing:0.12em;
+                      margin:0;line-height:1;">LERAVI</p>
+            <p style="font-family:{FB};font-size:0.58rem;color:#3A3A3A;letter-spacing:0.18em;
+                      text-transform:uppercase;margin:0.3rem 0 0 0;font-weight:500;">
+                Control Administrativo
+            </p>
         </div>
     """, unsafe_allow_html=True)
 
-    if st.sidebar.button("Cerrar Sesion"):
+    st.sidebar.markdown(f"""
+        <p style="font-family:{FB};font-size:0.58rem;font-weight:700;letter-spacing:0.18em;
+                  text-transform:uppercase;color:#333;margin:1.2rem 1.4rem 0.5rem 1.4rem;">
+            Navegacion
+        </p>
+    """, unsafe_allow_html=True)
+
+    nav_labels = [
+        "Dashboard",
+        "Alta de Trabajador",
+        "Alta de Maquina",
+        "Asignar Tarea",
+        "Editar Avances",
+        "Bitacora",
+        "Eliminar Registro",
+    ]
+    nav_keys = [
+        "Dashboard",
+        "Alta de Trabajador",
+        "Alta de Maquina",
+        "Asignar Tarea",
+        "Editar Avances",
+        "Bitacora",
+        "Eliminar",
+    ]
+
+    sel_label = st.sidebar.radio("", nav_labels, label_visibility="collapsed")
+    menu = nav_keys[nav_labels.index(sel_label)]
+
+    st.sidebar.markdown("<div style='flex:1;min-height:3rem;'></div>", unsafe_allow_html=True)
+
+    st.sidebar.markdown(f"""
+        <div style="border-top:1px solid #1A1A1A;padding:1.2rem 1.4rem 0.8rem 1.4rem;">
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+                <div style="width:32px;height:32px;border-radius:50%;background:{R};
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-family:{FB};font-size:0.78rem;font-weight:700;color:{BLA};">A</span>
+                </div>
+                <div>
+                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Admin</p>
+                    <p style="font-family:{FB};font-size:0.62rem;color:#444;margin:0;">
+                        {datetime.now().strftime('%d %b %Y')}
+                    </p>
+                </div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if st.sidebar.button("Cerrar Sesion", use_container_width=True):
         st.session_state['logged'] = False
         st.rerun()
 
-    st.sidebar.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
-    menu = st.sidebar.radio("NAVEGACION", ["Dashboard", "Alta de Trabajador", "Alta de Maquina", "Asignar Tarea", "Editar Avances", "Bitacora", "Eliminar"])
 
     if menu == "Dashboard":
-        st.markdown("<h1>Dashboard Analitico</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        page_header("Dashboard Analitico", "Estado operativo del personal y equipos")
 
-        vista = st.radio("Selecciona una vista:", ["Vision General", "Top Maquinas", "Top Trabajadores", "Control Herramientas", "Taller"], horizontal=True, label_visibility="collapsed")
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        vista = st.radio("", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller"],
+                         horizontal=True, label_visibility="collapsed")
+        st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 
         if vista == "Vision General":
             data = db_query("SELECT * FROM bitacora", fetch=True)
             if data:
                 df = pd.DataFrame(data)
                 df['ID_TRAB'] = df['id'].apply(lambda x: f"TRAB-{x:03d}")
-
-                total = len(df)
-                avances = []
+                avances_prom = []
                 for _, row in df.iterrows():
-                    vals = [row.get('avance_1', 0), row.get('avance_2', 0), row.get('avance_3', 0), row.get('avance_4', 0), row.get('avance_5', 0)]
-                    activos = [v for v in vals if pd.notna(v) and v > 0]
-                    avances.append(sum(activos) / len(activos) if activos else 0)
-                prom_global = sum(avances) / len(avances) if avances else 0
-                
-                res_cerradas = db_query("SELECT COUNT(*) as cnt FROM bitacora_completados", fetch=True)
-                total_cerradas = res_cerradas[0]['cnt'] if res_cerradas else 0
+                    vals = [row.get(f'avance_{i}', 0) for i in range(1,6)]
+                    act  = [v for v in vals if pd.notna(v) and v > 0]
+                    avances_prom.append(sum(act)/len(act) if act else 0)
+                prom_g = sum(avances_prom)/len(avances_prom) if avances_prom else 0
+                rc = db_query("SELECT COUNT(*) as cnt FROM bitacora_completados", fetch=True)
+                total_cerradas = rc[0]['cnt'] if rc else 0
 
-                m1, m2, m3 = st.columns(3)
-                m1.markdown(f"""
-                    <div style="background:#0A0A0A;border-left:4px solid #C8102E;padding:1.2rem 1.4rem;border-radius:3px;">
-                        <p style="color:#5A5A5A;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin:0;">Total Personal</p>
-                        <p style="color:white;font-family:'Bebas Neue',sans-serif;font-size:2.8rem;margin:0;line-height:1.1;">{total}</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                m2.markdown(f"""
-                    <div style="background:#0A0A0A;border-left:4px solid #C8102E;padding:1.2rem 1.4rem;border-radius:3px;">
-                        <p style="color:#5A5A5A;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin:0;">Avance Promedio</p>
-                        <p style="color:white;font-family:'Bebas Neue',sans-serif;font-size:2.8rem;margin:0;line-height:1.1;">{prom_global:.1f}%</p>
-                    </div>
-                """, unsafe_allow_html=True)
-                m3.markdown(f"""
-                    <div style="background:#0A0A0A;border-left:4px solid #C8102E;padding:1.2rem 1.4rem;border-radius:3px;">
-                        <p style="color:#5A5A5A;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin:0;">Actividades Cerradas</p>
-                        <p style="color:white;font-family:'Bebas Neue',sans-serif;font-size:2.8rem;margin:0;line-height:1.1;">{total_cerradas}</p>
-                    </div>
-                """, unsafe_allow_html=True)
+                c1, c2, c3 = st.columns(3)
+                metric_card(c1, "Total Personal", str(len(df)))
+                metric_card(c2, "Avance Promedio", f"{prom_g:.1f}%")
+                metric_card(c3, "Actividades Cerradas", str(total_cerradas))
 
-                st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-                st.markdown("<h2>Registro Completo</h2>", unsafe_allow_html=True)
-                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-                
-                columnas_ordenadas = ['ID_TRAB', 'nombre', 'fecha', 
-                                      'tarea_1', 'maquina_1', 'avance_1', 'fecha_inicio_1', 
-                                      'tarea_2', 'maquina_2', 'avance_2', 'fecha_inicio_2', 
-                                      'tarea_3', 'maquina_3', 'avance_3', 'fecha_inicio_3',
-                                      'tarea_4', 'maquina_4', 'avance_4', 'fecha_inicio_4',
-                                      'tarea_5', 'maquina_5', 'avance_5', 'fecha_inicio_5']
-                df_mostrar = df[[c for c in columnas_ordenadas if c in df.columns]]
-                st.dataframe(df_mostrar, use_container_width=True, hide_index=True)
+                section_title("Registro Completo", "Todos los trabajadores activos en el sistema")
+                cols_ord = ['ID_TRAB','nombre','fecha',
+                            'tarea_1','maquina_1','avance_1','fecha_inicio_1',
+                            'tarea_2','maquina_2','avance_2','fecha_inicio_2',
+                            'tarea_3','maquina_3','avance_3','fecha_inicio_3',
+                            'tarea_4','maquina_4','avance_4','fecha_inicio_4',
+                            'tarea_5','maquina_5','avance_5','fecha_inicio_5']
+                st.dataframe(df[[c for c in cols_ord if c in df.columns]], use_container_width=True, hide_index=True)
 
-                st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-                st.markdown("<h2>Avance por Trabajador</h2>", unsafe_allow_html=True)
-                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+                section_title("Avance por Trabajador", "Progreso individual de actividades activas")
+                hoy  = datetime.now().date()
 
-                COLORS_FILL = ["#C8102E", "#E8546A", "#F2A0AC", "#F9B4BE", "#FFC8D2"]
+                def dias_desde(fi):
+                    if not fi or (isinstance(fi, float) and pd.isna(fi)): return 0
+                    fi_d = fi if hasattr(fi, 'year') else datetime.strptime(str(fi), '%Y-%m-%d').date()
+                    return (hoy - fi_d).days
 
-                cols = st.columns(min(len(df), 3))
+                grid = st.columns(3)
                 for i, (_, row) in enumerate(df.iterrows()):
-                    col = cols[i % 3]
-                    tareas = [row.get('tarea_1'), row.get('tarea_2'), row.get('tarea_3'), row.get('tarea_4'), row.get('tarea_5')]
-                    avs = [row.get('avance_1', 0), row.get('avance_2', 0), row.get('avance_3', 0), row.get('avance_4', 0), row.get('avance_5', 0)]
-                    fechas = [row.get('fecha_inicio_1'), row.get('fecha_inicio_2'), row.get('fecha_inicio_3'), row.get('fecha_inicio_4'), row.get('fecha_inicio_5')]
-                    maquinas = [row.get('maquina_1', '-'), row.get('maquina_2', '-'), row.get('maquina_3', '-'), row.get('maquina_4', '-'), row.get('maquina_5', '-')]
-                    hoy = datetime.now().date()
+                    col      = grid[i % 3]
+                    tareas   = [row.get(f'tarea_{j}')        for j in range(1,6)]
+                    avs      = [row.get(f'avance_{j}', 0)    for j in range(1,6)]
+                    fechas   = [row.get(f'fecha_inicio_{j}') for j in range(1,6)]
+                    maquinas = [row.get(f'maquina_{j}', '-') for j in range(1,6)]
 
-                    def dias_desde(fi):
-                        if not fi or pd.isna(fi):
-                            return 0
-                        fi_date = fi if hasattr(fi, 'year') else datetime.strptime(str(fi), '%Y-%m-%d').date()
-                        return (hoy - fi_date).days
+                    bars_html  = ""
+                    chart_lbs  = []
+                    chart_vals = []
+                    chart_clrs = []
+                    hay_activa = False
 
-                    labels, values, colors = [], [], []
-                    task_dias_html = ""
-                    has_active_tasks = False
-
-                    for j, (t, a, m) in enumerate(zip(tareas, avs, maquinas)):
+                    for j, (t, a, fi, m) in enumerate(zip(tareas, avs, fechas, maquinas)):
                         if pd.notna(t) and t and t != '-':
-                            has_active_tasks = True
-                            d = dias_desde(fechas[j])
-                            
-                            t_safe = html.escape(str(t)[:20])
-                            m_safe = html.escape(str(m))
-                            a_safe = int(a) if pd.notna(a) and a is not None else 0
-                            
-                            labels.append(t_safe)
-                            values.append(a_safe)
-                            colors.append(COLORS_FILL[j])
-                            
-                            maq_text = f" | {m_safe}" if m_safe and m_safe != '-' else ""
-                            task_dias_html += f"""
-                                <div style="display:flex;justify-content:space-between;align-items:center;
-                                            border-bottom:1px solid #F0F0F0;padding:0.3rem 0;">
-                                    <span style="font-family:'DM Sans',sans-serif;font-size:0.78rem;
-                                                 color:#2C2C2C;flex:1;">{t_safe}{maq_text}</span>
-                                    <span style="font-family:'Bebas Neue',sans-serif;font-size:1rem;
-                                                 color:#C8102E;margin-left:0.5rem;white-space:nowrap;">{d} dias</span>
+                            hay_activa = True
+                            d    = dias_desde(fi)
+                            ts   = html.escape(str(t)[:26])
+                            ms   = html.escape(str(m)) if m and m != '-' else ""
+                            av   = int(a) if pd.notna(a) and a is not None else 0
+                            bc   = VER if av==100 else (AMA if av>=60 else R)
+                            mxt  = f'<span style="color:{GRI};font-size:0.68rem;"> &middot; {ms}</span>' if ms else ""
+                            chart_lbs.append(ts); chart_vals.append(av); chart_clrs.append(TASK_COLORS[j])
+                            bars_html += f"""
+                                <div style="padding:0.5rem 0;border-bottom:1px solid #F2F2F4;">
+                                    <div style="display:flex;justify-content:space-between;
+                                                align-items:flex-start;margin-bottom:0.32rem;">
+                                        <span style="font-family:{FB};font-size:0.78rem;color:{INK};
+                                                     flex:1;line-height:1.4;font-weight:500;">{ts}{mxt}</span>
+                                        <span style="font-family:{FB};font-size:0.7rem;color:{GRI};
+                                                     margin-left:0.6rem;white-space:nowrap;font-weight:500;">{d}d</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                        <div style="flex:1;height:4px;background:#EBEBED;border-radius:2px;overflow:hidden;">
+                                            <div style="width:{av}%;height:100%;background:{bc};border-radius:2px;"></div>
+                                        </div>
+                                        <span style="font-family:{FB};font-size:0.68rem;font-weight:700;
+                                                     color:{bc};min-width:2rem;text-align:right;">{av}%</span>
+                                    </div>
                                 </div>"""
 
+                    nombre_s = html.escape(str(row['nombre']))
+                    id_s     = html.escape(str(row['ID_TRAB']))
+
                     with col:
-                        nombre_safe = html.escape(str(row['nombre']))
-                        id_safe = html.escape(str(row['ID_TRAB']))
-
-                        if not has_active_tasks:
+                        if not hay_activa:
                             st.markdown(f"""
-                                <div style="background:white;border:1px solid #E8E8E8;border-top:3px solid #C8102E;
-                                            border-radius:3px;padding:1rem;margin-bottom:1rem;">
-                                    <p style="font-family:'DM Sans',sans-serif;font-size:0.7rem;font-weight:600;
-                                              letter-spacing:0.12em;text-transform:uppercase;color:#5A5A5A;margin:0;">
-                                        {id_safe}</p>
-                                    <p style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:#0A0A0A;
-                                              margin:0.2rem 0 0.8rem 0;">{nombre_safe}</p>
-                                    <p style="font-family:'DM Sans',sans-serif;font-size:0.85rem;color:#5A5A5A;text-align:center;">
-                                        Sin actividades activas</p>
-                                </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.markdown(f"""
-                                <div style="background:white;border:1px solid #E8E8E8;border-top:3px solid #C8102E;border-bottom:none;
-                                            border-radius:3px 3px 0 0;padding:1rem 1rem 0.2rem 1rem;">
-                                    <p style="font-family:'DM Sans',sans-serif;font-size:0.7rem;font-weight:600;
-                                              letter-spacing:0.12em;text-transform:uppercase;color:#5A5A5A;margin:0 0 0.2rem 0;">
-                                        {id_safe}</p>
-                                    <p style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;
-                                              color:#0A0A0A;margin:0 0 0.2rem 0;letter-spacing:0.05em;">{nombre_safe}</p>
-                                </div>
-                            """, unsafe_allow_html=True)
-                            
-                            if values:
-                                labels.reverse()
-                                values.reverse()
-                                colors.reverse()
-
-                                fig = go.Figure(go.Bar(
-                                    x=values,
-                                    y=labels,
-                                    orientation='h',
-                                    marker=dict(color=colors, line=dict(color='#0A0A0A', width=1)),
-                                    text=[f"{v}%" for v in values],
-                                    textposition='auto',
-                                    textfont=dict(size=12, color='white', family='DM Sans'),
-                                    hovertemplate='<b>%{y}</b>: %{x}%<extra></extra>'
-                                ))
-                                fig.update_layout(
-                                    paper_bgcolor='white',
-                                    plot_bgcolor='white',
-                                    margin=dict(t=5, b=5, l=10, r=10),
-                                    height=max(150, len(values) * 45),
-                                    xaxis=dict(range=[0, 100], showgrid=False, zeroline=False, visible=False),
-                                    yaxis=dict(showgrid=False, zeroline=False, tickfont=dict(family='DM Sans', color='#1A1A1A', size=11)),
-                                    showlegend=False
-                                )
-                                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
-                            else:
-                                st.markdown("<div style='background:white; border-left:1px solid #E8E8E8; border-right:1px solid #E8E8E8;'><p style='text-align:center; color:#5A5A5A; font-size:0.85rem; margin:0; padding:1rem 0;'>Actividades en 0%</p></div>", unsafe_allow_html=True)
-
-                            st.markdown(f"""
-                                <div style="background:white;border:1px solid #E8E8E8;border-top:none;
-                                            border-radius:0 0 3px 3px;padding:0.5rem 1rem 0.8rem 1rem;margin-bottom:1rem;">
-                                    <div style="border-top:1px solid #F0F0F0;padding-top:0.5rem;">
-                                        <p style="font-family:'DM Sans',sans-serif;font-size:0.65rem;font-weight:600;
-                                                  letter-spacing:0.12em;text-transform:uppercase;color:#5A5A5A;margin:0 0 0.4rem 0;">
-                                            Tiempo por actividad</p>
-                                        {task_dias_html}
+                                <div style="background:{BLA};border:1px solid {GRL};border-radius:8px;
+                                            padding:1.3rem 1.3rem;margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                                    <p style="font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;
+                                              text-transform:uppercase;color:{GRI};margin:0 0 0.25rem 0;">{id_s}</p>
+                                    <p style="font-family:{FB};font-size:1rem;font-weight:700;color:{INK};
+                                              margin:0 0 0.9rem 0;letter-spacing:-0.01em;">{nombre_s}</p>
+                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                        <div style="width:6px;height:6px;border-radius:50%;background:{GRL};"></div>
+                                        <span style="font-family:{FB};font-size:0.76rem;color:{GRI};">Sin actividades activas</span>
                                     </div>
                                 </div>
                             """, unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"""
+                                <div style="background:{BLA};border:1px solid {GRL};border-top:2px solid {R};
+                                            border-radius:8px 8px 0 0;padding:1.1rem 1.3rem 0.6rem 1.3rem;
+                                            box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                                    <p style="font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;
+                                              text-transform:uppercase;color:{GRI};margin:0 0 0.2rem 0;">{id_s}</p>
+                                    <p style="font-family:{FB};font-size:1rem;font-weight:700;color:{INK};
+                                              margin:0;letter-spacing:-0.01em;">{nombre_s}</p>
+                                </div>
+                            """, unsafe_allow_html=True)
 
-                    if (i + 1) % 3 == 0 and i + 1 < len(df):
-                        cols = st.columns(3)
+                            if chart_vals:
+                                lv = list(chart_lbs); vv = list(chart_vals); cv = list(chart_clrs)
+                                lv.reverse(); vv.reverse(); cv.reverse()
+                                fig = go.Figure(go.Bar(
+                                    x=vv, y=lv, orientation='h',
+                                    marker=dict(color=cv, line=dict(color='rgba(0,0,0,0)', width=0)),
+                                    text=[f"{v}%" for v in vv], textposition='auto',
+                                    textfont=dict(size=11, color='white', family='Inter'),
+                                    hovertemplate='<b>%{y}</b>: %{x}%<extra></extra>'
+                                ))
+                                fig.update_layout(
+                                    paper_bgcolor=BLA, plot_bgcolor=BLA,
+                                    margin=dict(t=4,b=4,l=6,r=6),
+                                    height=max(100, len(vv)*40),
+                                    xaxis=dict(range=[0,100],showgrid=False,zeroline=False,visible=False),
+                                    yaxis=dict(showgrid=False,zeroline=False,
+                                               tickfont=dict(family='Inter',color=INK,size=10)),
+                                    showlegend=False
+                                )
+                                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
+                            st.markdown(f"""
+                                <div style="background:{BLA};border:1px solid {GRL};border-top:none;
+                                            border-radius:0 0 8px 8px;padding:0.3rem 1.3rem 1rem 1.3rem;
+                                            margin-bottom:1rem;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                                    <p style="font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;
+                                              text-transform:uppercase;color:{GRI};margin:0.5rem 0 0.3rem 0;">
+                                        Progreso</p>
+                                    {bars_html}
+                                </div>
+                            """, unsafe_allow_html=True)
+
+                    if (i+1) % 3 == 0 and i+1 < len(df):
+                        grid = st.columns(3)
             else:
-                st.info("No hay registros disponibles")
+                st.info("No hay registros disponibles.")
 
         elif vista == "Top Maquinas":
-            st.markdown("<h2>Maquinas con Mayor Cantidad de Servicios (Historial Total)</h2>", unsafe_allow_html=True)
-            
-            data_completados = db_query("""
-                SELECT maquina, nombre as Empleado, tarea as Actividad, fecha_inicio as 'Fecha Inicio', fecha_cierre as 'Fecha Cierre', dias_duracion as Dias 
-                FROM bitacora_completados 
-                WHERE maquina != '-' AND maquina IS NOT NULL 
+            page_header("Top Maquinas", "Equipos con mayor cantidad de servicios completados")
+            data_c = db_query("""
+                SELECT maquina, nombre as Empleado, tarea as Actividad,
+                       fecha_inicio as `Fecha Inicio`, fecha_cierre as `Fecha Cierre`, dias_duracion as Dias
+                FROM bitacora_completados WHERE maquina!='-' AND maquina IS NOT NULL
             """, fetch=True)
-
-            if data_completados:
-                df_comp = pd.DataFrame(data_completados)
-                
-                df_comp['maquina_limpia'] = df_comp['maquina'].astype(str).str.upper().str.strip()
-                
-                df_counts = df_comp.groupby('maquina_limpia').size().reset_index(name='total')
-                df_top = df_counts.sort_values(by='total', ascending=False).head(10)
-                
-                x_nombres = df_top['maquina_limpia'].tolist()
-                y_totales = df_top['total'].tolist()
-                text_totales = [str(v) for v in y_totales]
-                
-                fig_maq = go.Figure(go.Bar(
-                    x=x_nombres,
-                    y=y_totales,
-                    orientation='v',
-                    marker_color='#C8102E',
-                    text=text_totales,
-                    textposition='outside',
-                    textfont=dict(size=14, family='DM Sans', color='#1A1A1A')
+            if data_c:
+                df_c = pd.DataFrame(data_c)
+                df_c['maq'] = df_c['maquina'].astype(str).str.upper().str.strip()
+                df_t = df_c.groupby('maq').size().reset_index(name='total').sort_values('total', ascending=False).head(10)
+                xn, yn = df_t['maq'].tolist(), df_t['total'].tolist()
+                fig = go.Figure(go.Bar(
+                    x=xn, y=yn, marker_color=R,
+                    text=[str(v) for v in yn], textposition='outside',
+                    textfont=dict(size=13, family='Inter', color=INK)
                 ))
-                
-                fig_maq.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(
-                        title="Maquina",
-                        type='category', 
-                        categoryorder='array',
-                        categoryarray=x_nombres,
-                        tickfont=dict(family='DM Sans', size=12, color='#1A1A1A')
-                    ),
-                    yaxis=dict(
-                        title="Servicios Completados",
-                        tickmode='linear',
-                        tick0=0,
-                        dtick=1, 
-                        rangemode='tozero', 
-                        tickfont=dict(family='DM Sans', size=12, color='#1A1A1A'),
-                        showgrid=True,
-                        gridcolor='#E8E8E8'
-                    ),
-                    height=450,
-                    margin=dict(t=30, b=30, l=30, r=30)
+                fig.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    xaxis=dict(title="Maquina", type='category', categoryorder='array', categoryarray=xn,
+                               tickfont=dict(family='Inter', size=11, color=INK)),
+                    yaxis=dict(title="Servicios", tickmode='linear', tick0=0, dtick=1,
+                               rangemode='tozero', showgrid=True, gridcolor='#F0F0F0',
+                               tickfont=dict(family='Inter', size=11, color=INK)),
+                    height=420, margin=dict(t=20, b=20, l=20, r=20)
                 )
-                st.plotly_chart(fig_maq, use_container_width=True, config={'displayModeBar': False})
-
-                st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-                st.markdown("<h3>Historial Detallado por Maquina</h3>", unsafe_allow_html=True)
-                
-                maq_sel = st.selectbox("Selecciona una maquina de la lista para ver todos sus servicios completados:", x_nombres)
-                
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                section_title("Historial por Maquina")
+                maq_sel = st.selectbox("Selecciona una maquina:", xn)
                 if maq_sel:
-                    detalles = df_comp[df_comp['maquina_limpia'] == maq_sel]
-                    detalles_mostrar = detalles[['Empleado', 'Actividad', 'Fecha Inicio', 'Fecha Cierre', 'Dias']]
-                    
-                    st.markdown(f"<p style='font-family:DM Sans; font-size:0.85rem; color:#5A5A5A;'>Mostrando <b>{len(detalles_mostrar)}</b> registro(s) encontrado(s).</p>", unsafe_allow_html=True)
-                    st.dataframe(detalles_mostrar, use_container_width=True, hide_index=True)
+                    det = df_c[df_c['maq']==maq_sel][['Empleado','Actividad','Fecha Inicio','Fecha Cierre','Dias']]
+                    st.markdown(f"<p style='font-size:0.8rem;color:{GRI};margin-bottom:0.5rem;'><b>{len(det)}</b> registro(s) encontrado(s).</p>", unsafe_allow_html=True)
+                    st.dataframe(det, use_container_width=True, hide_index=True)
             else:
-                st.info("Aun no hay suficientes servicios completados registrados para generar este analisis.")
+                st.info("Aun no hay suficientes servicios completados para este analisis.")
 
         elif vista == "Top Trabajadores":
-            st.markdown("<h2>Trabajadores con Mayor Cantidad de Tareas Completadas</h2>", unsafe_allow_html=True)
-            
-            data_completados_trab = db_query("""
-                SELECT nombre as Empleado, maquina as Maquina, tarea as Actividad, fecha_inicio as 'Fecha Inicio', fecha_cierre as 'Fecha Cierre', dias_duracion as Dias 
-                FROM bitacora_completados 
+            page_header("Top Trabajadores", "Personal con mayor cantidad de tareas completadas")
+            data_t = db_query("""
+                SELECT nombre as Empleado, maquina as Maquina, tarea as Actividad,
+                       fecha_inicio as `Fecha Inicio`, fecha_cierre as `Fecha Cierre`, dias_duracion as Dias
+                FROM bitacora_completados
             """, fetch=True)
-
-            if data_completados_trab:
-                df_comp_t = pd.DataFrame(data_completados_trab)
-                
-                df_comp_t['empleado_limpio'] = df_comp_t['Empleado'].astype(str).str.strip()
-                
-                df_counts_t = df_comp_t.groupby('empleado_limpio').size().reset_index(name='total')
-                df_top_t = df_counts_t.sort_values(by='total', ascending=False).head(10)
-                
-                x_nombres_t = df_top_t['empleado_limpio'].tolist()
-                y_totales_t = df_top_t['total'].tolist()
-                text_totales_t = [str(v) for v in y_totales_t]
-                
-                fig_trab = go.Figure(go.Bar(
-                    x=x_nombres_t,
-                    y=y_totales_t,
-                    orientation='v',
-                    marker_color='#C8102E', 
-                    text=text_totales_t,
-                    textposition='outside',
-                    textfont=dict(size=14, family='DM Sans', color='#1A1A1A')
+            if data_t:
+                df_t = pd.DataFrame(data_t)
+                df_t['emp'] = df_t['Empleado'].astype(str).str.strip()
+                df_top = df_t.groupby('emp').size().reset_index(name='total').sort_values('total', ascending=False).head(10)
+                xt, yt = df_top['emp'].tolist(), df_top['total'].tolist()
+                fig = go.Figure(go.Bar(
+                    x=xt, y=yt, marker_color=R,
+                    text=[str(v) for v in yt], textposition='outside',
+                    textfont=dict(size=13, family='Inter', color=INK)
                 ))
-                
-                fig_trab.update_layout(
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
-                    xaxis=dict(
-                        title="Trabajador",
-                        type='category', 
-                        categoryorder='array',
-                        categoryarray=x_nombres_t,
-                        tickfont=dict(family='DM Sans', size=12, color='#1A1A1A')
-                    ),
-                    yaxis=dict(
-                        title="Tareas Completadas",
-                        tickmode='linear',
-                        tick0=0,
-                        dtick=1, 
-                        rangemode='tozero', 
-                        tickfont=dict(family='DM Sans', size=12, color='#1A1A1A'),
-                        showgrid=True,
-                        gridcolor='#E8E8E8'
-                    ),
-                    height=450,
-                    margin=dict(t=30, b=30, l=30, r=30)
+                fig.update_layout(
+                    paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+                    xaxis=dict(title="Trabajador", type='category', categoryorder='array', categoryarray=xt,
+                               tickfont=dict(family='Inter', size=11, color=INK)),
+                    yaxis=dict(title="Tareas", tickmode='linear', tick0=0, dtick=1,
+                               rangemode='tozero', showgrid=True, gridcolor='#F0F0F0',
+                               tickfont=dict(family='Inter', size=11, color=INK)),
+                    height=420, margin=dict(t=20, b=20, l=20, r=20)
                 )
-                st.plotly_chart(fig_trab, use_container_width=True, config={'displayModeBar': False})
-
-                st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-                st.markdown("<h3>Historial Detallado por Trabajador</h3>", unsafe_allow_html=True)
-                
-                trab_sel = st.selectbox("Selecciona un trabajador de la lista para ver todas sus tareas completadas:", x_nombres_t)
-                
-                if trab_sel:
-                    detalles_t = df_comp_t[df_comp_t['empleado_limpio'] == trab_sel]
-                    detalles_mostrar_t = detalles_t[['Actividad', 'Maquina', 'Fecha Inicio', 'Fecha Cierre', 'Dias']]
-                    
-                    st.markdown(f"<p style='font-family:DM Sans; font-size:0.85rem; color:#5A5A5A;'>Mostrando <b>{len(detalles_mostrar_t)}</b> registro(s) encontrado(s).</p>", unsafe_allow_html=True)
-                    st.dataframe(detalles_mostrar_t, use_container_width=True, hide_index=True)
+                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                section_title("Historial por Trabajador")
+                tr_sel = st.selectbox("Selecciona un trabajador:", xt)
+                if tr_sel:
+                    det = df_t[df_t['emp']==tr_sel][['Actividad','Maquina','Fecha Inicio','Fecha Cierre','Dias']]
+                    st.markdown(f"<p style='font-size:0.8rem;color:{GRI};margin-bottom:0.5rem;'><b>{len(det)}</b> registro(s) encontrado(s).</p>", unsafe_allow_html=True)
+                    st.dataframe(det, use_container_width=True, hide_index=True)
             else:
-                st.info("Aun no hay suficientes tareas completadas registradas para generar este analisis.")
+                st.info("Aun no hay tareas completadas suficientes para este analisis.")
 
         elif vista == "Control Herramientas":
-            st.markdown("<h2>Asignación y Control de Herramientas</h2>", unsafe_allow_html=True)
-            
-            res_trab = db_query("SELECT nombre FROM bitacora ORDER BY nombre ASC", fetch=True)
-            lista_trabajadores_herr = [r['nombre'] for r in res_trab] if res_trab else []
-
-            with st.form("form_asignar_herramienta"):
-                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra la salida de una herramienta del almacén.</p>", unsafe_allow_html=True)
+            page_header("Control de Herramientas", "Registro de salidas y devoluciones del almacen")
+            rt = db_query("SELECT nombre FROM bitacora ORDER BY nombre ASC", fetch=True)
+            lista_trab = [r['nombre'] for r in rt] if rt else []
+            with st.form("form_herramienta"):
                 c1, c2, c3 = st.columns(3)
-                
-                if lista_trabajadores_herr:
-                    trab_herr = c1.selectbox("Trabajador", lista_trabajadores_herr)
-                else:
-                    trab_herr = c1.selectbox("Trabajador", ["- Ninguno -"])
-                    
-                herramienta = c2.text_input("Herramienta a prestar")
-                tarea_herr = c3.text_input("Tarea/Motivo de uso (Opcional)")
-                
-                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-                if st.form_submit_button("REGISTRAR SALIDA DE HERRAMIENTA"):
-                    if not lista_trabajadores_herr or trab_herr == "- Ninguno -":
-                        st.error("Primero debes dar de alta trabajadores en el sistema.")
-                    elif not herramienta: 
+                trab_h = c1.selectbox("Trabajador", lista_trab if lista_trab else ["Sin trabajadores"])
+                herr   = c2.text_input("Herramienta", placeholder="")
+                tarea  = c3.text_input("Tarea / Motivo", placeholder="Opcional")
+                st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+                if st.form_submit_button("REGISTRAR SALIDA", use_container_width=True):
+                    if not lista_trab:
+                        st.error("Primero da de alta trabajadores en el sistema.")
+                    elif not herr.strip():
                         st.error("El nombre de la herramienta es obligatorio.")
                     else:
-                        ahora = datetime.now()
-                        motivo = tarea_herr.strip() if tarea_herr.strip() else "Sin especificar"
-                        
-                        db_query("""
-                            INSERT INTO prestamo_herramientas (trabajador, herramienta, tarea, fecha_prestamo, estado) 
-                            VALUES (%s, %s, %s, %s, 'Prestado')
-                        """, (trab_herr, herramienta, motivo, ahora))
-                        st.success(f"¡Salida registrada! {herramienta} entregada a {trab_herr}.")
-                        time.sleep(1)
-                        st.rerun()
+                        db_query("INSERT INTO prestamo_herramientas (trabajador,herramienta,tarea,fecha_prestamo,estado) VALUES (%s,%s,%s,%s,'Prestado')",
+                                 (trab_h, herr.strip(), tarea.strip() or "Sin especificar", datetime.now()))
+                        st.success(f"Herramienta registrada: {herr.strip()} entregada a {trab_h}.")
+                        time.sleep(0.7); st.rerun()
 
-            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-            st.markdown("<h3>Herramientas Prestadas (Pendientes de Devolución)</h3>", unsafe_allow_html=True)
-            
-            prestadas = db_query("SELECT * FROM prestamo_herramientas WHERE estado = 'Prestado' ORDER BY fecha_prestamo DESC", fetch=True)
-            
+            section_title("Herramientas en Uso", "Pendientes de devolucion al almacen")
+            prestadas = db_query("SELECT * FROM prestamo_herramientas WHERE estado='Prestado' ORDER BY fecha_prestamo DESC", fetch=True)
             if prestadas:
                 for row in prestadas:
-                    c_info, c_btn = st.columns([4, 1])
-                    
-                    fecha_p_str = row['fecha_prestamo'].strftime("%Y-%m-%d %H:%M") if isinstance(row['fecha_prestamo'], datetime) else str(row['fecha_prestamo'])
-                    herr_safe = html.escape(str(row['herramienta']))
-                    trab_safe = html.escape(str(row['trabajador']))
-                    tar_safe = html.escape(str(row['tarea']))
-
-                    c_info.markdown(f"""
-                        <div style="background:white;border:1px solid #E8E8E8;border-left:3px solid #ffc107;
-                                    border-radius:3px;padding:0.7rem 1rem;margin-bottom:0.5rem;">
-                            <p style="font-family:'DM Sans',sans-serif;font-size:0.7rem;font-weight:600;
-                                      letter-spacing:0.1em;text-transform:uppercase;color:#5A5A5A;margin:0;">
-                                EN USO POR: {trab_safe}</p>
-                            <p style="font-family:'DM Sans',sans-serif;font-size:1rem;color:#0A0A0A;
-                                      margin:0.1rem 0 0 0;"><b>{herr_safe}</b> 
-                                <span style="color:#5A5A5A;font-size:0.85rem;margin-left:0.5rem;">(Tarea: {tar_safe})</span>
-                            </p>
-                            <p style="font-family:'DM Sans',sans-serif;font-size:0.75rem;color:#C8102E;margin:0.2rem 0 0 0;">
-                                <i class="fas fa-clock"></i> Prestado el: {fecha_p_str}
-                            </p>
+                    fecha_s = row['fecha_prestamo'].strftime("%d/%m/%Y %H:%M") if isinstance(row['fecha_prestamo'], datetime) else str(row['fecha_prestamo'])
+                    hs = html.escape(str(row['herramienta']))
+                    ts = html.escape(str(row['trabajador']))
+                    ps = html.escape(str(row['tarea']))
+                    ci, cb = st.columns([5, 1])
+                    ci.markdown(f"""
+                        <div style="background:{BLA};border:1px solid {GRL};border-left:3px solid {AMA};
+                                    border-radius:8px;padding:1rem 1.3rem;margin-bottom:0.5rem;
+                                    box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+                                <div>
+                                    <p style="font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;
+                                              text-transform:uppercase;color:{GRI};margin:0 0 0.2rem 0;">En uso &middot; {ts}</p>
+                                    <p style="font-family:{FB};font-size:0.95rem;font-weight:700;color:{INK};margin:0;">
+                                        {hs}<span style="font-weight:400;color:{GRI};font-size:0.84rem;"> &mdash; {ps}</span>
+                                    </p>
+                                </div>
+                                <span style="font-family:{FB};font-size:0.72rem;color:{AMA};font-weight:600;">{fecha_s}</span>
+                            </div>
                         </div>
                     """, unsafe_allow_html=True)
-                    
-                    with c_btn:
-                        st.markdown("<div style='margin-top: 0.8rem;'></div>", unsafe_allow_html=True)
-                        if st.button("✔ DEVOLVER", key=f"dev_{row['id']}", use_container_width=True):
-                            ahora_dev = datetime.now()
-                            db_query("""
-                                UPDATE prestamo_herramientas 
-                                SET estado = 'Devuelto', fecha_devolucion = %s 
-                                WHERE id = %s
-                            """, (ahora_dev, row['id']))
-                            st.success(f"{herr_safe} ha regresado al almacén.")
-                            time.sleep(0.8)
-                            st.rerun()
+                    with cb:
+                        st.markdown("<div style='margin-top:0.6rem'></div>", unsafe_allow_html=True)
+                        if st.button("DEVOLVER", key=f"dev_{row['id']}", use_container_width=True):
+                            db_query("UPDATE prestamo_herramientas SET estado='Devuelto',fecha_devolucion=%s WHERE id=%s",
+                                     (datetime.now(), row['id']))
+                            st.success(f"{hs} devuelta al almacen.")
+                            time.sleep(0.6); st.rerun()
             else:
-                st.info("Actualmente no hay herramientas prestadas. Todo está en almacén.")
+                st.info("No hay herramientas prestadas actualmente.")
 
-            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-            st.markdown("<h3>Historial de Herramientas Devueltas</h3>", unsafe_allow_html=True)
-            
-            devueltas = db_query("""
-                SELECT trabajador as Trabajador, herramienta as Herramienta, tarea as Tarea, 
-                       fecha_prestamo as 'Fecha Salida', fecha_devolucion as 'Fecha Entrega' 
-                FROM prestamo_herramientas 
-                WHERE estado = 'Devuelto' 
-                ORDER BY fecha_devolucion DESC 
-                LIMIT 100
+            section_title("Historial de Devoluciones")
+            dev = db_query("""
+                SELECT trabajador as Trabajador, herramienta as Herramienta, tarea as Tarea,
+                       fecha_prestamo as `Fecha Salida`, fecha_devolucion as `Fecha Entrega`
+                FROM prestamo_herramientas WHERE estado='Devuelto' ORDER BY fecha_devolucion DESC LIMIT 100
             """, fetch=True)
-            
-            if devueltas:
-                st.dataframe(pd.DataFrame(devueltas), use_container_width=True, hide_index=True)
-            else:
-                st.info("No hay historial de devoluciones aún.")
+            if dev: st.dataframe(pd.DataFrame(dev), use_container_width=True, hide_index=True)
+            else:   st.info("Sin historial de devoluciones aun.")
 
         elif vista == "Taller":
-            st.markdown("<h2>Gestión de Taller (Máquinas en Reparación)</h2>", unsafe_allow_html=True)
-            
-            lista_maquinas = obtener_lista_maquinas()
-            lista_maquinas_clean = [m for m in lista_maquinas if m != '-']
-            
-            with st.form("form_ingreso_taller"):
-                st.markdown("<p style='font-family:DM Sans;font-size:0.85rem;color:#5A5A5A;margin-bottom:1rem;'>Registra el ingreso de una máquina averiada al taller.</p>", unsafe_allow_html=True)
+            page_header("Gestion de Taller", "Equipos en reparacion y control de ingresos")
+            lm   = obtener_lista_maquinas()
+            lm_c = [m for m in lm if m != '-']
+            with st.form("form_taller"):
                 c1, c2 = st.columns([1, 2])
-                
-                if lista_maquinas_clean:
-                    maq_taller = c1.selectbox("Máquina a ingresar", lista_maquinas_clean)
-                else:
-                    maq_taller = c1.selectbox("Máquina a ingresar", ["- Sin máquinas registradas -"])
-                    
-                motivo_taller = c2.text_input("Motivo de ingreso / Falla reportada")
-                
-                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-                if st.form_submit_button("REGISTRAR INGRESO A TALLER"):
-                    if not lista_maquinas_clean or maq_taller == "- Sin máquinas registradas -":
-                        st.error("Primero debes dar de alta máquinas en el sistema.")
-                    elif not motivo_taller:
+                maq_t  = c1.selectbox("Maquina", lm_c if lm_c else ["Sin maquinas"])
+                mot_t  = c2.text_input("Falla reportada / Motivo de ingreso")
+                st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+                if st.form_submit_button("REGISTRAR INGRESO A TALLER", use_container_width=True):
+                    if not lm_c:
+                        st.error("Primero da de alta maquinas en el sistema.")
+                    elif not mot_t.strip():
                         st.error("Debes especificar la falla o motivo de ingreso.")
                     else:
-                        ahora = datetime.now()
-                        db_query("""
-                            INSERT INTO taller (maquina, motivo, fecha_ingreso, estado) 
-                            VALUES (%s, %s, %s, 'En Taller')
-                        """, (maq_taller, motivo_taller, ahora))
-                        st.success(f"Máquina {maq_taller} ingresada al taller correctamente.")
-                        time.sleep(1)
-                        st.rerun()
-            
-            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-            st.markdown("<h3>Máquinas actualmente en Taller</h3>", unsafe_allow_html=True)
-            
-            en_taller = db_query("SELECT * FROM taller WHERE estado = 'En Taller' ORDER BY fecha_ingreso DESC", fetch=True)
-            data_bita = db_query("SELECT * FROM bitacora", fetch=True)
-            
-            if en_taller:
-                hoy = datetime.now()
-                for row in en_taller:
-                    dias_en_taller = (hoy - row['fecha_ingreso']).days
-                    if dias_en_taller == 0:
-                        dias_str = "Ingresó hoy"
-                    elif dias_en_taller == 1:
-                        dias_str = "1 día en taller"
-                    else:
-                        dias_str = f"{dias_en_taller} días en taller"
-                        
-                    maq_safe = html.escape(str(row['maquina']))
-                    motivo_safe = html.escape(str(row['motivo']))
-                    
-                    tareas_en_proceso = []
-                    if data_bita:
-                        for rb in data_bita:
-                            for i in range(1, 6):
-                                bita_maq = str(rb.get(f'maquina_{i}')).strip().upper()
-                                bita_tarea = rb.get(f'tarea_{i}')
-                                if bita_maq == maq_safe and bita_tarea and bita_tarea != '-':
-                                    tareas_en_proceso.append({
-                                        'trabajador': rb['nombre'],
-                                        'tarea': bita_tarea,
-                                        'avance': rb.get(f'avance_{i}', 0)
-                                    })
-                    
-                    tareas_html = ""
-                    if tareas_en_proceso:
-                        tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'><p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-weight:bold; margin-bottom:0.3rem;'><i class='fas fa-wrench'></i> Actividades en proceso:</p>"
-                        for t in tareas_en_proceso:
-                            t_safe = html.escape(str(t['tarea']))
-                            tr_safe = html.escape(str(t['trabajador']))
-                            # AQUI ESTA LA CORRECCIÓN: Todo en una sola línea sin espacios al principio
-                            tareas_html += f"<p style='font-family:DM Sans; font-size:0.85rem; color:#212529; margin:0.1rem 0;'>• {tr_safe} está trabajando en: <b>{t_safe}</b> <span style='color:#C8102E;'>({t['avance']}%)</span></p>"
-                        tareas_html += "</div>"
-                    else:
-                        tareas_html += "<div style='margin-top:0.8rem; padding-top:0.8rem; border-top:1px dashed #E8E8E8;'><p style='font-family:DM Sans; font-size:0.75rem; color:#5A5A5A; font-style:italic; margin:0;'>No hay trabajadores con tareas activas asignadas a esta máquina.</p></div>"
+                        db_query("INSERT INTO taller (maquina,motivo,fecha_ingreso,estado) VALUES (%s,%s,%s,'En Taller')",
+                                 (maq_t, mot_t.strip(), datetime.now()))
+                        st.success(f"Maquina {maq_t} ingresada al taller.")
+                        time.sleep(0.7); st.rerun()
 
-                    c_info, c_btn = st.columns([4, 1])
-                    
-                    c_info.markdown(f"""
-                        <div style="background:white;border:1px solid #E8E8E8;border-left:4px solid #dc3545;
-                                    border-radius:3px;padding:1rem;margin-bottom:0.5rem;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <p style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#0A0A0A; margin:0; letter-spacing: 1px;">
-                                    {maq_safe}
-                                </p>
-                                <span style="background-color:#dc3545; color:white; padding: 2px 8px; border-radius: 12px; font-family:DM Sans; font-size:0.75rem; font-weight:bold;">
-                                    {dias_str}
-                                </span>
+            section_title("Equipos en Taller", "Maquinas actualmente fuera de servicio")
+            en_t  = db_query("SELECT * FROM taller WHERE estado='En Taller' ORDER BY fecha_ingreso DESC", fetch=True)
+            bita  = db_query("SELECT * FROM bitacora", fetch=True)
+            ahora = datetime.now()
+
+            if en_t:
+                for row in en_t:
+                    dias_t  = (ahora - row['fecha_ingreso']).days
+                    dias_s  = "Ingreso hoy" if dias_t==0 else (f"1 dia en taller" if dias_t==1 else f"{dias_t} dias en taller")
+                    bc      = PEL if dias_t>7 else (AMA if dias_t>3 else GRI)
+                    maq_s   = html.escape(str(row['maquina']))
+                    mot_s   = html.escape(str(row['motivo']))
+                    act_html = ""
+                    if bita:
+                        procs = []
+                        for rb in bita:
+                            for i in range(1,6):
+                                bm = str(rb.get(f'maquina_{i}','')).strip().upper()
+                                bt = rb.get(f'tarea_{i}')
+                                if bm == maq_s and bt and bt != '-':
+                                    procs.append({'trab': rb['nombre'], 'tarea': bt, 'av': rb.get(f'avance_{i}',0)})
+                        if procs:
+                            act_html = f"<div style='margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid #F0F0F2;'>"
+                            act_html += f"<p style='font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:{GRI};margin:0 0 0.4rem 0;'>Actividades en proceso</p>"
+                            for p in procs:
+                                act_html += f"<p style='font-family:{FB};font-size:0.82rem;color:{INK};margin:0.15rem 0;font-weight:500;'>&middot; {html.escape(str(p['trab']))} &mdash; {html.escape(str(p['tarea']))} <span style='color:{R};font-weight:700;'>({p['av']}%)</span></p>"
+                            act_html += "</div>"
+                        else:
+                            act_html = f"<div style='margin-top:0.8rem;padding-top:0.8rem;border-top:1px solid #F0F0F2;'><p style='font-family:{FB};font-size:0.78rem;color:{GRL};font-style:italic;margin:0;'>Sin actividades activas asignadas.</p></div>"
+                    ci, cb = st.columns([5, 1])
+                    ci.markdown(f"""
+                        <div style="background:{BLA};border:1px solid {GRL};border-left:3px solid {PEL};
+                                    border-radius:8px;padding:1.1rem 1.3rem;margin-bottom:0.6rem;
+                                    box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.3rem;">
+                                <p style="font-family:{FB};font-size:1.05rem;font-weight:700;color:{INK};margin:0;letter-spacing:-0.01em;">{maq_s}</p>
+                                <span style="background:{bc};color:{BLA};padding:3px 12px;border-radius:20px;
+                                             font-family:{FB};font-size:0.68rem;font-weight:700;letter-spacing:0.04em;">{dias_s}</span>
                             </div>
-                            <p style="font-family:'DM Sans',sans-serif;font-size:0.95rem;color:#5A5A5A; margin:0.2rem 0 0 0;">
-                                <b>Reporte:</b> {motivo_safe}
+                            <p style="font-family:{FB};font-size:0.84rem;color:{GRI};margin:0;">
+                                <span style="font-weight:600;color:{INK};">Reporte:</span> {mot_s}
                             </p>
-                            {tareas_html}
+                            {act_html}
                         </div>
                     """, unsafe_allow_html=True)
-                    
-                    with c_btn:
-                        st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
-                        if st.button("✔ REPARADA", key=f"rep_{row['id']}", use_container_width=True):
-                            ahora_salida = datetime.now()
-                            db_query("""
-                                UPDATE taller 
-                                SET estado = 'Reparado', fecha_salida = %s 
-                                WHERE id = %s
-                            """, (ahora_salida, row['id']))
-                            st.success(f"{maq_safe} ha sido dada de alta del taller.")
-                            time.sleep(0.8)
-                            st.rerun()
+                    with cb:
+                        st.markdown("<div style='margin-top:1.2rem'></div>", unsafe_allow_html=True)
+                        if st.button("REPARADA", key=f"rep_{row['id']}", use_container_width=True):
+                            db_query("UPDATE taller SET estado='Reparado',fecha_salida=%s WHERE id=%s",
+                                     (datetime.now(), row['id']))
+                            st.success(f"{maq_s} dada de alta del taller.")
+                            time.sleep(0.6); st.rerun()
             else:
-                st.info("Excelente, todas las máquinas están operativas. No hay equipos en taller.")
+                st.info("Todas las maquinas estan operativas. No hay equipos en taller.")
 
-            st.markdown("<div style='height:2rem'></div>", unsafe_allow_html=True)
-            st.markdown("<h3>Historial de Máquinas Reparadas</h3>", unsafe_allow_html=True)
-            
-            reparadas = db_query("""
-                SELECT maquina as Maquina, motivo as 'Falla Reportada', 
-                       fecha_ingreso as 'Fecha Ingreso', fecha_salida as 'Fecha Alta'
-                FROM taller 
-                WHERE estado = 'Reparado' 
-                ORDER BY fecha_salida DESC 
-                LIMIT 100
+            section_title("Historial de Reparaciones")
+            rep = db_query("""
+                SELECT maquina as Maquina, motivo as Falla,
+                       fecha_ingreso as Ingreso, fecha_salida as Alta
+                FROM taller WHERE estado='Reparado' ORDER BY fecha_salida DESC LIMIT 100
             """, fetch=True)
-            
-            if reparadas:
-                df_rep = pd.DataFrame(reparadas)
-                df_rep['Días en Taller'] = (pd.to_datetime(df_rep['Fecha Alta']) - pd.to_datetime(df_rep['Fecha Ingreso'])).dt.days
-                st.dataframe(df_rep, use_container_width=True, hide_index=True)
+            if rep:
+                df_r = pd.DataFrame(rep)
+                df_r['Dias en Taller'] = (pd.to_datetime(df_r['Alta']) - pd.to_datetime(df_r['Ingreso'])).dt.days
+                st.dataframe(df_r, use_container_width=True, hide_index=True)
             else:
-                st.info("Aún no hay historial de máquinas reparadas.")
+                st.info("Sin historial de reparaciones aun.")
 
 
     elif menu == "Alta de Trabajador":
-        st.markdown("<h1>Alta de Trabajador</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        page_header("Alta de Trabajador", "Registra nuevo personal en el sistema")
         with st.form("alta_trabajador"):
-            nom = st.text_input("Nombre Completo")
-            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-            if st.form_submit_button("REGISTRAR TRABAJADOR"):
-                if nom:
-                    db_query("INSERT INTO bitacora (nombre, fecha) VALUES (%s, %s)",
-                             (nom, datetime.now().date()))
-                    st.success("Trabajador registrado correctamente")
-                    st.rerun()
+            nom = st.text_input("Nombre Completo", placeholder="Ej. Juan Garcia Lopez")
+            st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+            if st.form_submit_button("REGISTRAR TRABAJADOR", use_container_width=True):
+                if nom.strip():
+                    db_query("INSERT INTO bitacora (nombre,fecha) VALUES (%s,%s)", (nom.strip(), datetime.now().date()))
+                    st.success(f"Trabajador registrado: {nom.strip()}")
+                    time.sleep(0.7); st.rerun()
+                else:
+                    st.error("El nombre no puede estar vacio.")
+
 
     elif menu == "Alta de Maquina":
-        st.markdown("<h1>Alta de Maquina</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        page_header("Alta de Maquina", "Agrega un nuevo equipo al catalogo del sistema")
         with st.form("alta_maquina"):
-            nom_maq = st.text_input("Nombre de la Maquina")
-            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-            if st.form_submit_button("REGISTRAR MAQUINA"):
-                if nom_maq:
-                    nom_maq_clean = nom_maq.strip().upper()
+            nom_m = st.text_input("Nombre de la Maquina", placeholder="Ej. EXCAVADORA CAT 320")
+            st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+            if st.form_submit_button("REGISTRAR MAQUINA", use_container_width=True):
+                if nom_m.strip():
                     try:
-                        db_query("INSERT INTO maquinas (nombre) VALUES (%s)", (nom_maq_clean,))
-                        st.success("Maquina registrada correctamente")
-                        time.sleep(1)
-                        st.rerun()
+                        db_query("INSERT INTO maquinas (nombre) VALUES (%s)", (nom_m.strip().upper(),))
+                        st.success(f"Maquina registrada: {nom_m.strip().upper()}")
+                        time.sleep(0.7); st.rerun()
                     except mysql.connector.IntegrityError:
                         st.error("Esta maquina ya se encuentra registrada.")
+                else:
+                    st.error("El nombre no puede estar vacio.")
+
 
     elif menu == "Asignar Tarea":
-        st.markdown("<h1>Asignar Tarea</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        page_header("Asignar Tarea", "Asigna nuevas actividades al personal activo")
         res = db_query("SELECT * FROM bitacora", fetch=True)
-        lista_maquinas = obtener_lista_maquinas()
-
+        lm  = obtener_lista_maquinas()
         if res:
-            opc = {f"{r['nombre']} (ID: TRAB-{r['id']:03d})": r for r in res}
+            opc = {f"{r['nombre']}  —  TRAB-{r['id']:03d}": r for r in res}
             with st.form("asignar_tarea"):
-                sel = st.selectbox("Seleccione Trabajador", list(opc.keys()))
-                tar = st.text_input("Nueva Tarea")
-                maq = st.selectbox("Maquina (Opcional)", lista_maquinas)
-                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-                
-                if st.form_submit_button("ASIGNAR TAREA"):
-                    if tar:
+                sel = st.selectbox("Trabajador", list(opc.keys()))
+                c1, c2 = st.columns([2, 1])
+                tar = c1.text_input("Descripcion de la Tarea", placeholder="Ej. Mantenimiento preventivo motor")
+                maq = c2.selectbox("Maquina (Opcional)", lm)
+                st.markdown("<div style='height:0.3rem'></div>", unsafe_allow_html=True)
+                if st.form_submit_button("ASIGNAR TAREA", use_container_width=True):
+                    if tar.strip():
                         curr = opc[sel]
-                        hoy = datetime.now().date()
-                        val_maq = maq.strip().upper() if maq else '-'
-                        
-                        if curr.get('tarea_1') == '-' or not curr.get('tarea_1'):
-                            db_query("UPDATE bitacora SET tarea_1=%s, maquina_1=%s, avance_1=0, fecha_inicio_1=%s WHERE id=%s", (tar, val_maq, hoy, curr['id']))
-                            st.success("Tarea asignada en el espacio 1")
-                            st.rerun()
-                        elif curr.get('tarea_2') == '-' or not curr.get('tarea_2'):
-                            db_query("UPDATE bitacora SET tarea_2=%s, maquina_2=%s, avance_2=0, fecha_inicio_2=%s WHERE id=%s", (tar, val_maq, hoy, curr['id']))
-                            st.success("Tarea asignada en el espacio 2")
-                            st.rerun()
-                        elif curr.get('tarea_3') == '-' or not curr.get('tarea_3'):
-                            db_query("UPDATE bitacora SET tarea_3=%s, maquina_3=%s, avance_3=0, fecha_inicio_3=%s WHERE id=%s", (tar, val_maq, hoy, curr['id']))
-                            st.success("Tarea asignada en el espacio 3")
-                            st.rerun()
-                        elif curr.get('tarea_4') == '-' or not curr.get('tarea_4'):
-                            db_query("UPDATE bitacora SET tarea_4=%s, maquina_4=%s, avance_4=0, fecha_inicio_4=%s WHERE id=%s", (tar, val_maq, hoy, curr['id']))
-                            st.success("Tarea asignada en el espacio 4")
-                            st.rerun()
-                        elif curr.get('tarea_5') == '-' or not curr.get('tarea_5'):
-                            db_query("UPDATE bitacora SET tarea_5=%s, maquina_5=%s, avance_5=0, fecha_inicio_5=%s WHERE id=%s", (tar, val_maq, hoy, curr['id']))
-                            st.success("Tarea asignada en el espacio 5")
-                            st.rerun()
-                        else:
-                            st.error("El trabajador ya tiene 5 tareas activas. Cierre una antes de asignar otra.")
+                        hoy  = datetime.now().date()
+                        vm   = maq.strip().upper() if maq else '-'
+                        asig = False
+                        for i in range(1, 6):
+                            if curr.get(f'tarea_{i}') in (None, '-', ''):
+                                db_query(f"UPDATE bitacora SET tarea_{i}=%s,maquina_{i}=%s,avance_{i}=0,fecha_inicio_{i}=%s WHERE id=%s",
+                                         (tar.strip(), vm, hoy, curr['id']))
+                                st.success(f"Tarea asignada en el espacio {i}.")
+                                asig = True; time.sleep(0.6); st.rerun(); break
+                        if not asig:
+                            st.error("El trabajador ya tiene 5 tareas activas. Cierra una antes de asignar otra.")
+                    else:
+                        st.error("La descripcion de la tarea no puede estar vacia.")
         else:
-            st.info("Primero debe dar de alta a un trabajador en la pestana 'Alta de Trabajador'.")
+            st.info("Primero da de alta un trabajador en 'Alta de Trabajador'.")
+
 
     elif menu == "Editar Avances":
-        st.markdown("<h1>Actualizar Avances</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        page_header("Editar Avances", "Actualiza el progreso de las actividades por trabajador")
         res = db_query("SELECT * FROM bitacora", fetch=True)
-        lista_maquinas = obtener_lista_maquinas()
-
+        lm  = obtener_lista_maquinas()
         if res:
             opc  = {r['nombre']: r for r in res}
-            sel  = st.selectbox("Seleccione Personal", list(opc.keys()))
+            sel  = st.selectbox("Trabajador", list(opc.keys()))
             curr = opc[sel]
-            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+            st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
             with st.form("upd"):
-                st.markdown("### Espacio 1", unsafe_allow_html=True)
-                c1, c2, c3 = st.columns([2, 2, 1])
-                t1 = c1.text_input("Tarea 1", value=curr.get('tarea_1', '-'))
-                opts_m1, idx_m1 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_1', '-'))
-                m1 = c2.selectbox("Maquina 1", opts_m1, index=idx_m1)
-                a1 = c3.number_input("Avance 1 (%)", 0, 100, curr.get('avance_1', 0), step=5)
-                
-                st.markdown("### Espacio 2", unsafe_allow_html=True)
-                c4, c5, c6 = st.columns([2, 2, 1])
-                t2 = c4.text_input("Tarea 2", value=curr.get('tarea_2', '-'))
-                opts_m2, idx_m2 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_2', '-'))
-                m2 = c5.selectbox("Maquina 2", opts_m2, index=idx_m2)
-                a2 = c6.number_input("Avance 2 (%)", 0, 100, curr.get('avance_2', 0), step=5)
-                
-                st.markdown("### Espacio 3", unsafe_allow_html=True)
-                c7, c8, c9 = st.columns([2, 2, 1])
-                t3 = c7.text_input("Tarea 3", value=curr.get('tarea_3', '-'))
-                opts_m3, idx_m3 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_3', '-'))
-                m3 = c8.selectbox("Maquina 3", opts_m3, index=idx_m3)
-                a3 = c9.number_input("Avance 3 (%)", 0, 100, curr.get('avance_3', 0), step=5)
+                inputs = {}
+                for i in range(1, 6):
+                    st.markdown(f"""
+                        <div style="background:{FON};border:1px solid {GRL};border-left:2px solid {R};
+                                    border-radius:6px;padding:0.55rem 1rem 0.15rem 1rem;margin-bottom:0.5rem;">
+                            <p style="font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;
+                                      text-transform:uppercase;color:{GRI};margin:0;">Espacio {i}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    ca, cb, cc = st.columns([2, 2, 1])
+                    opts, ix = asegurar_valor_en_lista(lm, curr.get(f'maquina_{i}', '-'))
+                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}", value=curr.get(f'tarea_{i}', '-'), key=f'ti{i}')
+                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}", opts, index=ix, key=f'mi{i}')
+                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, curr.get(f'avance_{i}', 0), step=5, key=f'ai{i}')
 
-                st.markdown("### Espacio 4", unsafe_allow_html=True)
-                c10, c11, c12 = st.columns([2, 2, 1])
-                t4 = c10.text_input("Tarea 4", value=curr.get('tarea_4', '-'))
-                opts_m4, idx_m4 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_4', '-'))
-                m4 = c11.selectbox("Maquina 4", opts_m4, index=idx_m4)
-                a4 = c12.number_input("Avance 4 (%)", 0, 100, curr.get('avance_4', 0), step=5)
+                t1,t2,t3,t4,t5 = inputs['t1'],inputs['t2'],inputs['t3'],inputs['t4'],inputs['t5']
+                m1,m2,m3,m4,m5 = inputs['m1'],inputs['m2'],inputs['m3'],inputs['m4'],inputs['m5']
+                a1,a2,a3,a4,a5 = inputs['a1'],inputs['a2'],inputs['a3'],inputs['a4'],inputs['a5']
 
-                st.markdown("### Espacio 5", unsafe_allow_html=True)
-                c13, c14, c15 = st.columns([2, 2, 1])
-                t5 = c13.text_input("Tarea 5", value=curr.get('tarea_5', '-'))
-                opts_m5, idx_m5 = asegurar_valor_en_lista(lista_maquinas, curr.get('maquina_5', '-'))
-                m5 = c14.selectbox("Maquina 5", opts_m5, index=idx_m5)
-                a5 = c15.number_input("Avance 5 (%)", 0, 100, curr.get('avance_5', 0), step=5)
-                
-                st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-                
-                if st.form_submit_button("ACTUALIZAR REGISTRO"):
-                    hoy = datetime.now().date()
-                    nuevas_tareas = [
-                        (t1, "fecha_inicio_1", curr.get('tarea_1'), curr.get('fecha_inicio_1')),
-                        (t2, "fecha_inicio_2", curr.get('tarea_2'), curr.get('fecha_inicio_2')),
-                        (t3, "fecha_inicio_3", curr.get('tarea_3'), curr.get('fecha_inicio_3')),
-                        (t4, "fecha_inicio_4", curr.get('tarea_4'), curr.get('fecha_inicio_4')),
-                        (t5, "fecha_inicio_5", curr.get('tarea_5'), curr.get('fecha_inicio_5'))
-                    ]
-                    
-                    fi1 = curr.get('fecha_inicio_1')
-                    fi2 = curr.get('fecha_inicio_2')
-                    fi3 = curr.get('fecha_inicio_3')
-                    fi4 = curr.get('fecha_inicio_4')
-                    fi5 = curr.get('fecha_inicio_5')
-                    fi_nuevas = [fi1, fi2, fi3, fi4, fi5]
-                    
-                    for idx, (nueva_t, col_fi, prev_t, prev_fi) in enumerate(nuevas_tareas):
-                        if nueva_t and nueva_t != '-' and (not prev_t or prev_t == '-'):
-                            fi_nuevas[idx] = hoy
-                    
-                    fi1, fi2, fi3, fi4, fi5 = fi_nuevas
-
-                    m1_clean = m1.strip().upper() if m1 else '-'
-                    m2_clean = m2.strip().upper() if m2 else '-'
-                    m3_clean = m3.strip().upper() if m3 else '-'
-                    m4_clean = m4.strip().upper() if m4 else '-'
-                    m5_clean = m5.strip().upper() if m5 else '-'
-
-                    db_query(
-                        "UPDATE bitacora SET tarea_1=%s, avance_1=%s, fecha_inicio_1=%s, maquina_1=%s, tarea_2=%s, avance_2=%s, fecha_inicio_2=%s, maquina_2=%s, tarea_3=%s, avance_3=%s, fecha_inicio_3=%s, maquina_3=%s, tarea_4=%s, avance_4=%s, fecha_inicio_4=%s, maquina_4=%s, tarea_5=%s, avance_5=%s, fecha_inicio_5=%s, maquina_5=%s WHERE id=%s",
-                        (t1, a1, fi1, m1_clean, t2, a2, fi2, m2_clean, t3, a3, fi3, m3_clean, t4, a4, fi4, m4_clean, t5, a5, fi5, m5_clean, curr['id'])
-                    )
-                    
+                st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+                if st.form_submit_button("GUARDAR CAMBIOS", use_container_width=True):
+                    hoy    = datetime.now().date()
+                    prev   = [(curr.get(f'tarea_{i}'), curr.get(f'fecha_inicio_{i}')) for i in range(1,6)]
+                    fi     = [curr.get(f'fecha_inicio_{i}') for i in range(1,6)]
+                    for idx, (nt, (pt, _)) in enumerate(zip([t1,t2,t3,t4,t5], prev)):
+                        if nt and nt != '-' and (not pt or pt == '-'):
+                            fi[idx] = hoy
+                    fi1,fi2,fi3,fi4,fi5 = fi
+                    def mc(v): return v.strip().upper() if v else '-'
+                    db_query("""UPDATE bitacora SET
+                        tarea_1=%s,avance_1=%s,fecha_inicio_1=%s,maquina_1=%s,
+                        tarea_2=%s,avance_2=%s,fecha_inicio_2=%s,maquina_2=%s,
+                        tarea_3=%s,avance_3=%s,fecha_inicio_3=%s,maquina_3=%s,
+                        tarea_4=%s,avance_4=%s,fecha_inicio_4=%s,maquina_4=%s,
+                        tarea_5=%s,avance_5=%s,fecha_inicio_5=%s,maquina_5=%s WHERE id=%s""",
+                        (t1,a1,fi1,mc(m1),t2,a2,fi2,mc(m2),t3,a3,fi3,mc(m3),
+                         t4,a4,fi4,mc(m4),t5,a5,fi5,mc(m5),curr['id']))
                     cerradas = cerrar_actividades_completadas(
-                        curr['id'], sel, fi1, fi2, fi3, fi4, fi5, t1, a1, m1_clean, t2, a2, m2_clean, t3, a3, m3_clean, t4, a4, m4_clean, t5, a5, m5_clean
-                    )
+                        curr['id'],sel,fi1,fi2,fi3,fi4,fi5,
+                        t1,a1,mc(m1),t2,a2,mc(m2),t3,a3,mc(m3),t4,a4,mc(m4),t5,a5,mc(m5))
                     if cerradas:
                         for c in cerradas:
                             st.success(f"Actividad cerrada y enviada a Bitacora: {c}")
                     else:
-                        st.success("Registro actualizado correctamente")
-                    st.rerun()
+                        st.success("Registro actualizado correctamente.")
+                    time.sleep(0.6); st.rerun()
 
-            actividades = [
-                ("tarea_1", "avance_1", "fecha_inicio_1", "maquina_1", curr.get('tarea_1', '-'), curr.get('avance_1', 0)),
-                ("tarea_2", "avance_2", "fecha_inicio_2", "maquina_2", curr.get('tarea_2', '-'), curr.get('avance_2', 0)),
-                ("tarea_3", "avance_3", "fecha_inicio_3", "maquina_3", curr.get('tarea_3', '-'), curr.get('avance_3', 0)),
-                ("tarea_4", "avance_4", "fecha_inicio_4", "maquina_4", curr.get('tarea_4', '-'), curr.get('avance_4', 0)),
-                ("tarea_5", "avance_5", "fecha_inicio_5", "maquina_5", curr.get('tarea_5', '-'), curr.get('avance_5', 0)),
-            ]
-            activas = [(ct, ca, cfi, cm, t, a) for ct, ca, cfi, cm, t, a in actividades if t and t != '-']
+            acts    = [(f"tarea_{i}",f"avance_{i}",f"fecha_inicio_{i}",f"maquina_{i}",
+                        curr.get(f'tarea_{i}','-'), curr.get(f'avance_{i}',0)) for i in range(1,6)]
+            activas = [(ct,ca,cfi,cm,t,a) for ct,ca,cfi,cm,t,a in acts if t and t != '-']
 
             if activas:
-                st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
-                st.markdown("""
-                    <div style="border-top:2px solid #E8E8E8;padding-top:1.2rem;">
-                        <p style="font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.08em;
-                                  color:#0A0A0A;margin:0 0 0.3rem 0;">Eliminar Actividad</p>
-                        <p style="font-family:'DM Sans',sans-serif;font-size:0.8rem;color:#5A5A5A;margin:0 0 1rem 0;">
-                            Selecciona la actividad a eliminar por error. Esta accion no se puede deshacer.</p>
+                st.markdown(f"""
+                    <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid {GRL};">
+                        <h2 style="margin:0 0 0.25rem 0;">Eliminar Actividad</h2>
+                        <p style="font-family:{FB};font-size:0.8rem;color:{GRI};margin:0 0 1rem 0;">
+                            Elimina una actividad por error. Esta accion no se puede deshacer.
+                        </p>
                     </div>
                 """, unsafe_allow_html=True)
-
-                for col_t, col_a, col_fi, col_m, nombre_t, avance_t in activas:
-                    nombre_t_safe = html.escape(str(nombre_t))
-                    
-                    c_info, c_btn = st.columns([4, 1])
-                    
-                    c_info.markdown(f"""
-                        <div style="background:white;border:1px solid #E8E8E8;border-left:3px solid #C8102E;
-                                    border-radius:3px;padding:0.7rem 1rem;margin-bottom:0.5rem;">
-                            <p style="font-family:'DM Sans',sans-serif;font-size:0.7rem;font-weight:600;
-                                      letter-spacing:0.1em;text-transform:uppercase;color:#5A5A5A;margin:0;">
-                                {col_t.replace('_', ' ').upper()}</p>
-                            <p style="font-family:'DM Sans',sans-serif;font-size:0.95rem;color:#0A0A0A;
-                                      margin:0.1rem 0 0 0;">{nombre_t_safe}
-                                <span style="color:#C8102E;font-weight:600;margin-left:0.5rem;">{avance_t}%</span>
+                for ct,ca,cfi,cm,nom_t,av_t in activas:
+                    ns   = html.escape(str(nom_t))
+                    aclr = VER if av_t==100 else (AMA if av_t>=60 else R)
+                    ci, cb = st.columns([5, 1])
+                    ci.markdown(f"""
+                        <div style="background:{BLA};border:1px solid {GRL};border-left:2px solid {R};
+                                    border-radius:8px;padding:0.85rem 1.2rem;margin-bottom:0.5rem;
+                                    box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                            <p style="font-family:{FB};font-size:0.6rem;font-weight:700;letter-spacing:0.14em;
+                                      text-transform:uppercase;color:{GRI};margin:0 0 0.15rem 0;">
+                                {ct.replace('_',' ').upper()}</p>
+                            <p style="font-family:{FB};font-size:0.92rem;font-weight:600;color:{INK};margin:0;">
+                                {ns}<span style="color:{aclr};font-weight:700;margin-left:0.5rem;">{av_t}%</span>
                             </p>
                         </div>
                     """, unsafe_allow_html=True)
-                    
-                    with c_btn:
-                        st.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
-                        if st.button("🗑️ BORRAR", key=f"del_{col_t}_{curr['id']}", use_container_width=True):
-                            db_query(
-                                f"UPDATE bitacora SET {col_t}='-', {col_a}=0, {col_fi}=NULL, {col_m}='-' WHERE id=%s",
-                                (curr['id'],)
-                            )
-                            st.warning(f"Actividad eliminada: {nombre_t_safe}")
-                            time.sleep(0.8)
-                            st.rerun()
+                    with cb:
+                        st.markdown("<div style='margin-top:0.45rem'></div>", unsafe_allow_html=True)
+                        if st.button("BORRAR", key=f"del_{ct}_{curr['id']}", use_container_width=True):
+                            db_query(f"UPDATE bitacora SET {ct}='-',{ca}=0,{cfi}=NULL,{cm}='-' WHERE id=%s", (curr['id'],))
+                            st.warning(f"Actividad eliminada: {ns}")
+                            time.sleep(0.6); st.rerun()
+
 
     elif menu == "Bitacora":
-        st.markdown("<h1>Bitacora de Actividades Completadas</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
-
+        page_header("Bitacora de Actividades", "Historial completo de todas las tareas cerradas al 100%")
         data = db_query("SELECT * FROM bitacora_completados ORDER BY fecha_cierre DESC", fetch=True)
         if data:
-            df_bit = pd.DataFrame(data)
-            df_bit.rename(columns={
-                'nombre':        'Empleado',
-                'tarea':         'Actividad',
-                'maquina':       'Maquina',
-                'fecha_inicio':  'Fecha Inicio',
-                'fecha_cierre':  'Fecha Cierre',
-                'dias_duracion': 'Dias'
-            }, inplace=True)
-            df_bit.drop(columns=['id'], inplace=True)
+            df_b = pd.DataFrame(data)
+            df_b.rename(columns={'nombre':'Empleado','tarea':'Actividad','maquina':'Maquina',
+                                  'fecha_inicio':'Fecha Inicio','fecha_cierre':'Fecha Cierre',
+                                  'dias_duracion':'Dias'}, inplace=True)
+            df_b.drop(columns=['id'], inplace=True)
 
-            total_bit        = len(df_bit)
-            empleados_unicos = df_bit['Empleado'].nunique()
-            ultima           = str(df_bit['Fecha Cierre'].iloc[0])
-
-            m1, m2, m3 = st.columns(3)
-            m1.markdown(f"""
-                <div style="background:#0A0A0A;border-left:4px solid #C8102E;padding:1.2rem 1.4rem;border-radius:3px;">
-                    <p style="color:#5A5A5A;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin:0;">Total Cerradas</p>
-                    <p style="color:white;font-family:'Bebas Neue',sans-serif;font-size:2.8rem;margin:0;line-height:1.1;">{total_bit}</p>
-                </div>
-            """, unsafe_allow_html=True)
-            m2.markdown(f"""
-                <div style="background:#0A0A0A;border-left:4px solid #C8102E;padding:1.2rem 1.4rem;border-radius:3px;">
-                    <p style="color:#5A5A5A;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin:0;">Empleados Participantes</p>
-                    <p style="color:white;font-family:'Bebas Neue',sans-serif;font-size:2.8rem;margin:0;line-height:1.1;">{empleados_unicos}</p>
-                </div>
-            """, unsafe_allow_html=True)
-            m3.markdown(f"""
-                <div style="background:#0A0A0A;border-left:4px solid #C8102E;padding:1.2rem 1.4rem;border-radius:3px;">
-                    <p style="color:#5A5A5A;font-size:0.7rem;letter-spacing:0.15em;text-transform:uppercase;margin:0;">Ultimo Cierre</p>
-                    <p style="color:white;font-family:'Bebas Neue',sans-serif;font-size:1.8rem;margin:0;line-height:1.3;">{ultima}</p>
-                </div>
-            """, unsafe_allow_html=True)
+            c1, c2, c3 = st.columns(3)
+            metric_card(c1, "Total Cerradas",        str(len(df_b)))
+            metric_card(c2, "Personal Participante", str(df_b['Empleado'].nunique()))
+            metric_card(c3, "Ultimo Cierre",         str(df_b['Fecha Cierre'].iloc[0]))
 
             st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
+            rt      = db_query("SELECT nombre FROM bitacora ORDER BY nombre ASC", fetch=True)
+            lista_t = ["Todos"] + ([r['nombre'] for r in rt] if rt else [])
+            cf1, cf2 = st.columns(2)
+            fil_emp = cf1.selectbox("Filtrar por Empleado", lista_t)
+            buscar  = cf2.text_input("Buscar Actividad o Maquina", placeholder="Ej. motor, excavadora...")
 
-            res_trabajadores = db_query("SELECT nombre FROM bitacora ORDER BY nombre ASC", fetch=True)
-            lista_trabajadores = ["Todos"]
-            if res_trabajadores:
-                lista_trabajadores.extend([r['nombre'] for r in res_trabajadores])
-
-            col_f1, col_f2 = st.columns(2)
-            with col_f1:
-                filtro_empleado = st.selectbox("Filtrar por Empleado", lista_trabajadores)
-            with col_f2:
-                buscar = st.text_input("Buscar por Actividad o Maquina")
-
-            if filtro_empleado != "Todos":
-                df_bit = df_bit[df_bit['Empleado'] == filtro_empleado]
-
+            if fil_emp != "Todos":
+                df_b = df_b[df_b['Empleado'] == fil_emp]
             if buscar:
-                mask = (
-                    df_bit['Actividad'].str.contains(buscar, case=False, na=False) |
-                    df_bit['Maquina'].str.contains(buscar, case=False, na=False)
-                )
-                df_bit = df_bit[mask]
+                df_b = df_b[df_b['Actividad'].str.contains(buscar, case=False, na=False) |
+                            df_b['Maquina'].str.contains(buscar, case=False, na=False)]
 
-            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
-            if not df_bit.empty:
-                st.dataframe(df_bit, use_container_width=True, hide_index=True)
+            st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+            if not df_b.empty:
+                st.dataframe(df_b, use_container_width=True, hide_index=True)
             else:
                 st.warning("No se encontraron registros con esos filtros.")
         else:
-            st.info("No hay actividades completadas aun")
+            st.info("No hay actividades completadas aun.")
+
 
     elif menu == "Eliminar":
-        st.markdown("<h1>Eliminar Registro</h1>", unsafe_allow_html=True)
-        st.markdown("<div style='height:1rem'></div>", unsafe_allow_html=True)
+        page_header("Eliminar Registro", "Baja permanente de un trabajador del sistema")
         res = db_query("SELECT id, nombre FROM bitacora", fetch=True)
         if res:
             opc = {r['nombre']: r['id'] for r in res}
-            sel = st.selectbox("Seleccione Registro a Eliminar", list(opc.keys()))
-            st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+            sel = st.selectbox("Seleccionar Trabajador a Eliminar", list(opc.keys()))
+            st.markdown(f"""
+                <div style="background:#FFF5F5;border:1px solid #FECACA;border-left:3px solid {PEL};
+                            border-radius:8px;padding:1rem 1.3rem;margin:1.2rem 0;">
+                    <p style="font-family:{FB};font-size:0.84rem;color:#7F1D1D;margin:0;font-weight:500;">
+                        <span style="font-weight:700;">Advertencia:</span> Estas a punto de eliminar permanentemente a
+                        <span style="font-weight:700;">{html.escape(sel)}</span> junto con todos sus registros activos.
+                        Esta accion no se puede deshacer.
+                    </p>
+                </div>
+            """, unsafe_allow_html=True)
             if st.button("CONFIRMAR ELIMINACION", type="primary"):
-                db_query("DELETE FROM bitacora WHERE id = %s", (opc[sel],))
-                st.warning("Registro eliminado")
-                time.sleep(1)
-                st.rerun()
+                db_query("DELETE FROM bitacora WHERE id=%s", (opc[sel],))
+                st.warning(f"Registro de '{sel}' eliminado del sistema.")
+                time.sleep(1); st.rerun()
+        else:
+            st.info("No hay registros para eliminar.")
+
 
 if conn:
     if 'logged' not in st.session_state:
         st.session_state['logged'] = False
-
     if not st.session_state['logged']:
         login_screen()
     else:
         admin_panel()
 else:
-    st.error("No se pudo conectar a la base de datos. Verifica tus credenciales o el estado del servidor MySQL.")
+    st.error("No se pudo conectar a la base de datos. Verifica las credenciales o el estado del servidor MySQL.")
