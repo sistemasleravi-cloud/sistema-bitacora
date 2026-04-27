@@ -63,13 +63,7 @@ html, body, [class*="css"] { font-family: var(--font) !important; }
 }
 [data-testid="stSidebar"] > div:first-child { padding: 0 !important; }
 
-[data-testid="stSidebar"] * {
-    font-family: var(--font) !important;
-}
 
-.material-symbols-rounded, .stIcon, span[class*="material"] {
-    font-family: "Material Symbols Rounded", "Material Icons" !important;
-}
 
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
