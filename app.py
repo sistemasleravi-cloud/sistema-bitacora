@@ -67,6 +67,10 @@ html, body, [class*="css"] { font-family: var(--font) !important; }
     font-family: var(--font) !important;
 }
 
+.material-symbols-rounded, .stIcon, span[class*="material"] {
+    font-family: "Material Symbols Rounded", "Material Icons" !important;
+}
+
 [data-testid="stSidebar"] p,
 [data-testid="stSidebar"] span,
 [data-testid="stSidebar"] label {
