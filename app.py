@@ -574,7 +574,7 @@ def login_screen():
     with st.form("login_form"):
         st.markdown(f"""<p style="font-family:{FB};font-size:0.65rem;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#444;text-align:center;margin:0 0 1.8rem 0;">Acceso al sistema</p>""", unsafe_allow_html=True)
         usuario = st.text_input("Usuario", placeholder="Nombre de usuario")
-        clave   = st.text_input("Contraseña", type="password", placeholder="Contraseña")
+        clave   = st.text_input("Contrasena", type="password", placeholder="Contrasena")
         st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
         if st.form_submit_button("INGRESAR", use_container_width=True):
             res = db_query("SELECT * FROM usuarios WHERE usuario=%s", (usuario,), fetch=True)
@@ -582,7 +582,7 @@ def login_screen():
                 st.session_state['logged'] = True
                 st.rerun()
             else:
-                st.error("Usuario o contraseña incorrectos.")
+                st.error("Usuario o contrasena incorrectos.")
 
     st.markdown(f"""<p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">&copy; {now_az().year} Grupo Constructor Leravi</p>""", unsafe_allow_html=True)
 
@@ -628,7 +628,7 @@ def admin_panel():
 
     nav_labels = [
         "Dashboard",
-        "Almacén General",
+        "Almacen General",
         "Alta de Trabajador",
         "Alta de Maquina",
         "Asignar Tarea",
@@ -1053,7 +1053,6 @@ def admin_panel():
                 st.info("Sin historial de reparaciones aun.")
 
     elif menu == "Almacen":
-        # Llamamos a la función de tu nuevo archivo, pasándole tu conexión a base de datos
         almacen.render_almacen(db_query, es_publico=False)
 
     elif menu == "Alta de Trabajador":
@@ -1068,7 +1067,6 @@ def admin_panel():
                     time.sleep(0.7); st.rerun()
                 else:
                     st.error("El nombre no puede estar vacio.")
-
 
     elif menu == "Alta de Maquina":
         page_header("Alta de Maquina", "Agrega un nuevo equipo al catalogo del sistema")
@@ -1085,7 +1083,6 @@ def admin_panel():
                         st.error("Esta maquina ya se encuentra registrada.")
                 else:
                     st.error("El nombre no puede estar vacio.")
-
 
     elif menu == "Asignar Tarea":
         page_header("Asignar Tarea", "Asigna nuevas actividades al personal activo")
@@ -1118,7 +1115,6 @@ def admin_panel():
         else:
             st.info("Primero da de alta un trabajador en 'Alta de Trabajador'.")
 
-
     elif menu == "Editar Avances":
         page_header("Editar Avances", "Actualiza el progreso de las actividades por trabajador")
         res = db_query("SELECT * FROM bitacora", fetch=True)
@@ -1127,8 +1123,9 @@ def admin_panel():
             opc  = {r['nombre']: r for r in res}
             sel  = st.selectbox("Trabajador", list(opc.keys()))
             curr = opc[sel]
+            wid  = curr['id']
             st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
-            with st.form("upd"):
+            with st.form(f"upd_{wid}"):
                 inputs = {}
                 for i in range(1, 6):
                     st.markdown(f"""
@@ -1140,9 +1137,9 @@ def admin_panel():
                     """, unsafe_allow_html=True)
                     ca, cb, cc = st.columns([2, 2, 1])
                     opts, ix = asegurar_valor_en_lista(lm, curr.get(f'maquina_{i}', '-'))
-                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}", value=curr.get(f'tarea_{i}', '-'), key=f'ti{i}')
-                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}", opts, index=ix, key=f'mi{i}')
-                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, curr.get(f'avance_{i}', 0), step=5, key=f'ai{i}')
+                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}",    value=curr.get(f'tarea_{i}', '-'),   key=f'ti{i}_{wid}')
+                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}",   opts, index=ix,                      key=f'mi{i}_{wid}')
+                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, int(curr.get(f'avance_{i}', 0) or 0), step=5, key=f'ai{i}_{wid}')
 
                 t1,t2,t3,t4,t5 = inputs['t1'],inputs['t2'],inputs['t3'],inputs['t4'],inputs['t5']
                 m1,m2,m3,m4,m5 = inputs['m1'],inputs['m2'],inputs['m3'],inputs['m4'],inputs['m5']
@@ -1212,7 +1209,6 @@ def admin_panel():
                             st.warning(f"Actividad eliminada: {ns}")
                             time.sleep(0.6); st.rerun()
 
-
     elif menu == "Bitacora":
         page_header("Bitacora de Actividades", "Historial completo de todas las tareas cerradas al 100%")
         data = db_query("SELECT * FROM bitacora_completados ORDER BY fecha_cierre DESC", fetch=True)
@@ -1248,7 +1244,6 @@ def admin_panel():
                 st.warning("No se encontraron registros con esos filtros.")
         else:
             st.info("No hay actividades completadas aun.")
-
 
     elif menu == "Eliminar":
         page_header("Eliminar Registro", "Baja permanente de un trabajador del sistema")
