@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import html
 import os
 import base64
+import almacen
 
 st.set_page_config(
     page_title="Control Administrativo · Leravi",
@@ -627,6 +628,7 @@ def admin_panel():
 
     nav_labels = [
         "Dashboard",
+        "Almacén General",
         "Alta de Trabajador",
         "Alta de Maquina",
         "Asignar Tarea",
@@ -636,6 +638,7 @@ def admin_panel():
     ]
     nav_keys = [
         "Dashboard",
+        "Almacen",
         "Alta de Trabajador",
         "Alta de Maquina",
         "Asignar Tarea",
@@ -661,7 +664,7 @@ def admin_panel():
                     <p style="font-family:{FB};font-size:0.62rem;color:#444;margin:0;">
                         {now_az().strftime('%d %b %Y')}
                     </p>
-                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.0</p>
+                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.1.0</p>
                 </div>
             </div>
         </div>
@@ -1049,6 +1052,9 @@ def admin_panel():
             else:
                 st.info("Sin historial de reparaciones aun.")
 
+    elif menu == "Almacen":
+        # Llamamos a la función de tu nuevo archivo, pasándole tu conexión a base de datos
+        almacen.render_almacen(db_query, es_publico=False)
 
     elif menu == "Alta de Trabajador":
         page_header("Alta de Trabajador", "Registra nuevo personal en el sistema")
@@ -1134,9 +1140,9 @@ def admin_panel():
                     """, unsafe_allow_html=True)
                     ca, cb, cc = st.columns([2, 2, 1])
                     opts, ix = asegurar_valor_en_lista(lm, curr.get(f'maquina_{i}', '-'))
-                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}", value=curr.get(f'tarea_{i}', '-'), key=f'ti{i}_{curr["id"]}')
-                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}", opts, index=ix, key=f'mi{i}_{curr["id"]}')
-                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, curr.get(f'avance_{i}', 0), step=5, key=f'ai{i}_{curr["id"]}')
+                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}", value=curr.get(f'tarea_{i}', '-'), key=f'ti{i}')
+                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}", opts, index=ix, key=f'mi{i}')
+                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, curr.get(f'avance_{i}', 0), step=5, key=f'ai{i}')
 
                 t1,t2,t3,t4,t5 = inputs['t1'],inputs['t2'],inputs['t3'],inputs['t4'],inputs['t5']
                 m1,m2,m3,m4,m5 = inputs['m1'],inputs['m2'],inputs['m3'],inputs['m4'],inputs['m5']
