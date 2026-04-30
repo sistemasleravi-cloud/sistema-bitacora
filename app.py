@@ -322,7 +322,6 @@ AZ_TZ = timezone(timedelta(hours=-7))
 def now_az():
     return datetime.now(AZ_TZ).replace(tzinfo=None)
 
-
 def page_header(titulo, subtitulo=""):
     sub = f'<p style="font-family:{FB};font-size:0.84rem;color:{GRI};margin:0.35rem 0 0 0;font-weight:400;">{subtitulo}</p>' if subtitulo else ""
     st.markdown(f"""
@@ -337,7 +336,6 @@ def page_header(titulo, subtitulo=""):
         </div>
     """, unsafe_allow_html=True)
 
-
 def metric_card(col, label, valor):
     col.markdown(f"""
         <div style="background:{NEG};border-radius:8px;padding:1.5rem 1.8rem;
@@ -350,7 +348,6 @@ def metric_card(col, label, valor):
         </div>
     """, unsafe_allow_html=True)
 
-
 def section_title(titulo, subtitulo=""):
     sub = f'<p style="font-family:{FB};font-size:0.8rem;color:{GRI};margin:0.2rem 0 0 0;">{subtitulo}</p>' if subtitulo else ""
     st.markdown(f"""
@@ -360,7 +357,6 @@ def section_title(titulo, subtitulo=""):
         </div>
     """, unsafe_allow_html=True)
 
-
 def row_card(col, contenido_html, borde_color=R):
     col.markdown(f"""
         <div style="background:{BLA};border:1px solid {GRL};border-left:3px solid {borde_color};
@@ -369,7 +365,6 @@ def row_card(col, contenido_html, borde_color=R):
             {contenido_html}
         </div>
     """, unsafe_allow_html=True)
-
 
 @st.cache_resource
 def init_connection():
@@ -461,9 +456,7 @@ def init_connection():
             retries -= 1; time.sleep(3)
     return None
 
-
 conn = init_connection()
-
 
 def db_query(query, params=None, fetch=False):
     try: conn.ping(reconnect=True, attempts=3, delay=1)
@@ -474,10 +467,8 @@ def db_query(query, params=None, fetch=False):
         res = cursor.fetchall(); cursor.close(); return res
     conn.commit(); cursor.close()
 
-
 def check_password(pw, hashed):
     return bcrypt.checkpw(pw.encode(), hashed.encode())
-
 
 def obtener_lista_maquinas():
     res = db_query("SELECT nombre FROM maquinas ORDER BY nombre ASC", fetch=True)
@@ -485,13 +476,11 @@ def obtener_lista_maquinas():
     if res: lista.extend([str(r['nombre']).strip().upper() for r in res])
     return sorted(list(set(lista)))
 
-
 def asegurar_valor_en_lista(lista, valor):
     valor = str(valor).strip().upper() if valor else "-"
     opciones = list(lista)
     if valor not in opciones: opciones.append(valor)
     return opciones, opciones.index(valor)
-
 
 def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
                                    t1, a1, m1, t2, a2, m2, t3, a3, m3, t4, a4, m4, t5, a5, m5):
@@ -519,7 +508,6 @@ def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
             db_query(f"UPDATE bitacora SET {ct}='-',{ca}=0,{cfi}=NULL,{cm}='-' WHERE id=%s", (tid,))
             cerradas.append(t)
     return cerradas
-
 
 def login_screen():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
@@ -585,7 +573,6 @@ def login_screen():
                 st.error("Usuario o contrasena incorrectos.")
 
     st.markdown(f"""<p style="text-align:center;font-family:{FB};font-size:0.62rem;color:#2A2A2A;margin-top:2rem;">&copy; {now_az().year} Grupo Constructor Leravi</p>""", unsafe_allow_html=True)
-
 
 def admin_panel():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
@@ -673,7 +660,6 @@ def admin_panel():
     if st.sidebar.button("Cerrar Sesion", use_container_width=True):
         st.session_state['logged'] = False
         st.rerun()
-
 
     if menu == "Dashboard":
         page_header("Dashboard Analitico", "Estado operativo del personal y equipos")
@@ -1171,6 +1157,12 @@ def admin_panel():
                             st.success(f"Actividad cerrada y enviada a Bitacora: {c}")
                     else:
                         st.success("Registro actualizado correctamente.")
+                    
+                    for i in range(1, 6):
+                        for k in [f'ti{i}_{wid}', f'mi{i}_{wid}', f'ai{i}_{wid}']:
+                            if k in st.session_state:
+                                del st.session_state[k]
+
                     time.sleep(0.6); st.rerun()
 
             acts    = [(f"tarea_{i}",f"avance_{i}",f"fecha_inicio_{i}",f"maquina_{i}",
@@ -1207,6 +1199,12 @@ def admin_panel():
                         if st.button("BORRAR", key=f"del_{ct}_{curr['id']}", use_container_width=True):
                             db_query(f"UPDATE bitacora SET {ct}='-',{ca}=0,{cfi}=NULL,{cm}='-' WHERE id=%s", (curr['id'],))
                             st.warning(f"Actividad eliminada: {ns}")
+                            
+                            for i in range(1, 6):
+                                for k in [f'ti{i}_{wid}', f'mi{i}_{wid}', f'ai{i}_{wid}']:
+                                    if k in st.session_state:
+                                        del st.session_state[k]
+
                             time.sleep(0.6); st.rerun()
 
     elif menu == "Bitacora":
@@ -1215,8 +1213,8 @@ def admin_panel():
         if data:
             df_b = pd.DataFrame(data)
             df_b.rename(columns={'nombre':'Empleado','tarea':'Actividad','maquina':'Maquina',
-                                  'fecha_inicio':'Fecha Inicio','fecha_cierre':'Fecha Cierre',
-                                  'dias_duracion':'Dias'}, inplace=True)
+                                 'fecha_inicio':'Fecha Inicio','fecha_cierre':'Fecha Cierre',
+                                 'dias_duracion':'Dias'}, inplace=True)
             df_b.drop(columns=['id'], inplace=True)
 
             c1, c2, c3 = st.columns(3)
@@ -1267,7 +1265,6 @@ def admin_panel():
                 time.sleep(1); st.rerun()
         else:
             st.info("No hay registros para eliminar.")
-
 
 if conn:
     if 'logged' not in st.session_state:
