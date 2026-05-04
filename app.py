@@ -509,6 +509,12 @@ def cerrar_actividades_completadas(tid, nombre, fi1, fi2, fi3, fi4, fi5,
             cerradas.append(t)
     return cerradas
 
+def _limpiar_estado_form_editar(wid, version):
+    for i in range(1, 6):
+        for k in [f'ti{i}_{wid}_v{version}', f'mi{i}_{wid}_v{version}', f'ai{i}_{wid}_v{version}']:
+            if k in st.session_state:
+                del st.session_state[k]
+
 def login_screen():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
     rutas_posibles = [
@@ -1103,6 +1109,10 @@ def admin_panel():
 
     elif menu == "Editar Avances":
         page_header("Editar Avances", "Actualiza el progreso de las actividades por trabajador")
+
+        if 'edit_form_v' not in st.session_state:
+            st.session_state['edit_form_v'] = 0
+
         res = db_query("SELECT * FROM bitacora", fetch=True)
         lm  = obtener_lista_maquinas()
         if res:
@@ -1110,8 +1120,10 @@ def admin_panel():
             sel  = st.selectbox("Trabajador", list(opc.keys()))
             curr = opc[sel]
             wid  = curr['id']
+            form_v = st.session_state['edit_form_v']
+
             st.markdown("<div style='height:0.6rem'></div>", unsafe_allow_html=True)
-            with st.form(f"upd_{wid}"):
+            with st.form(f"upd_{wid}_{form_v}"):
                 inputs = {}
                 for i in range(1, 6):
                     st.markdown(f"""
@@ -1123,9 +1135,9 @@ def admin_panel():
                     """, unsafe_allow_html=True)
                     ca, cb, cc = st.columns([2, 2, 1])
                     opts, ix = asegurar_valor_en_lista(lm, curr.get(f'maquina_{i}', '-'))
-                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}",    value=curr.get(f'tarea_{i}', '-'),   key=f'ti{i}_{wid}')
-                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}",   opts, index=ix,                      key=f'mi{i}_{wid}')
-                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, int(curr.get(f'avance_{i}', 0) or 0), step=5, key=f'ai{i}_{wid}')
+                    inputs[f't{i}'] = ca.text_input(f"Tarea {i}",    value=curr.get(f'tarea_{i}', '-'),   key=f'ti{i}_{wid}_v{form_v}')
+                    inputs[f'm{i}'] = cb.selectbox(f"Maquina {i}",   opts, index=ix,                      key=f'mi{i}_{wid}_v{form_v}')
+                    inputs[f'a{i}'] = cc.number_input(f"Avance {i}%", 0, 100, int(curr.get(f'avance_{i}', 0) or 0), step=5, key=f'ai{i}_{wid}_v{form_v}')
 
                 t1,t2,t3,t4,t5 = inputs['t1'],inputs['t2'],inputs['t3'],inputs['t4'],inputs['t5']
                 m1,m2,m3,m4,m5 = inputs['m1'],inputs['m2'],inputs['m3'],inputs['m4'],inputs['m5']
@@ -1155,18 +1167,17 @@ def admin_panel():
                     if cerradas:
                         for c in cerradas:
                             st.success(f"Actividad cerrada y enviada a Bitacora: {c}")
+                        st.session_state['edit_form_v'] += 1
                     else:
                         st.success("Registro actualizado correctamente.")
-                    
-                    for i in range(1, 6):
-                        for k in [f'ti{i}_{wid}', f'mi{i}_{wid}', f'ai{i}_{wid}']:
-                            if k in st.session_state:
-                                del st.session_state[k]
+                    time.sleep(0.6)
+                    st.rerun()
 
-                    time.sleep(0.6); st.rerun()
+            curr_fresh = db_query("SELECT * FROM bitacora WHERE id=%s", (wid,), fetch=True)
+            curr_fresh = curr_fresh[0] if curr_fresh else curr
 
             acts    = [(f"tarea_{i}",f"avance_{i}",f"fecha_inicio_{i}",f"maquina_{i}",
-                        curr.get(f'tarea_{i}','-'), curr.get(f'avance_{i}',0)) for i in range(1,6)]
+                        curr_fresh.get(f'tarea_{i}','-'), curr_fresh.get(f'avance_{i}',0)) for i in range(1,6)]
             activas = [(ct,ca,cfi,cm,t,a) for ct,ca,cfi,cm,t,a in acts if t and t != '-']
 
             if activas:
@@ -1196,16 +1207,12 @@ def admin_panel():
                     """, unsafe_allow_html=True)
                     with cb:
                         st.markdown("<div style='margin-top:0.45rem'></div>", unsafe_allow_html=True)
-                        if st.button("BORRAR", key=f"del_{ct}_{curr['id']}", use_container_width=True):
+                        if st.button("BORRAR", key=f"del_{ct}_{curr['id']}_v{form_v}", use_container_width=True):
                             db_query(f"UPDATE bitacora SET {ct}='-',{ca}=0,{cfi}=NULL,{cm}='-' WHERE id=%s", (curr['id'],))
                             st.warning(f"Actividad eliminada: {ns}")
-                            
-                            for i in range(1, 6):
-                                for k in [f'ti{i}_{wid}', f'mi{i}_{wid}', f'ai{i}_{wid}']:
-                                    if k in st.session_state:
-                                        del st.session_state[k]
-
-                            time.sleep(0.6); st.rerun()
+                            st.session_state['edit_form_v'] += 1
+                            time.sleep(0.6)
+                            st.rerun()
 
     elif menu == "Bitacora":
         page_header("Bitacora de Actividades", "Historial completo de todas las tareas cerradas al 100%")
