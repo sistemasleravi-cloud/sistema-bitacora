@@ -97,15 +97,8 @@ def admin_panel():
         st.session_state['logged'] = False
         st.rerun()
 
-    # --- RUTAS DE NAVEGACION ---
+    # --- RUTAS DE NAVEGACION LIMPIAS ---
     if menu == "Dashboard":
-        # Botón nativo, seguro y sin emojis para mantener el diseño ejecutivo
-        c1, c2 = st.columns([8, 2])
-        with c2:
-            st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
-            if st.button("Actualizar Datos", use_container_width=True):
-                st.rerun()
-        
         views.render_dashboard()
     elif menu == "Almacen":
         almacen.render_almacen(db_query, es_publico=False)
