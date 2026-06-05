@@ -4,3 +4,4 @@ mysql-connector-python
 bcrypt
 plotly
 streamlit-autorefresh
+streamlit-cookies-controller
