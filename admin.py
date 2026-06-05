@@ -84,7 +84,7 @@ def admin_panel():
                     <p style="font-family:{FB};font-size:0.62rem;color:#444;margin:0;">
                         {now_az().strftime('%d %b %Y')}
                     </p>
-                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.1.0</p>
+                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.1.1</p>
                 </div>
             </div>
         </div>
