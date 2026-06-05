@@ -1,4 +1,5 @@
 import streamlit as st
+from streamlit_cookies_controller import CookieController
 
 st.set_page_config(
     page_title="Control Administrativo · Leravi",
@@ -15,8 +16,16 @@ from admin import admin_panel
 load_css()
 
 if conn:
-    if 'logged' not in st.session_state:
+    cookie_controller = CookieController()
+    
+    cookie_auth = cookie_controller.get('auth_leravi')
+
+    if cookie_auth == 'autenticado':
+        st.session_state['logged'] = True
+    elif 'logged' not in st.session_state:
         st.session_state['logged'] = False
+
+    # 4. Flujo normal de pantallas
     if not st.session_state['logged']:
         login_screen()
     else:
