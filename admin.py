@@ -6,6 +6,7 @@ from utils import now_az
 import views
 import almacen
 from db import db_query
+from streamlit_autorefresh import st_autorefresh # <-- 1. IMPORTACION AGREGADA
 
 def admin_panel():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
@@ -94,7 +95,10 @@ def admin_panel():
         st.session_state['logged'] = False
         st.rerun()
 
+    # --- RUTAS DE NAVEGACION ---
     if menu == "Dashboard":
+        # --- 2. ACTIVADOR DE AUTOREFRESH CADA 5 SEGUNDOS (5000 ms) ---
+        st_autorefresh(interval=5000, limit=None, key="autorefresh_dashboard")
         views.render_dashboard()
     elif menu == "Almacen":
         almacen.render_almacen(db_query, es_publico=False)
