@@ -7,7 +7,7 @@ import views
 import almacen
 from db import db_query
 from streamlit_autorefresh import st_autorefresh
-from streamlit_cookies_controller import CookieController # <-- IMPORTACION PARA BORRAR COOKIES
+from streamlit_cookies_controller import CookieController
 
 def admin_panel():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
@@ -69,10 +69,10 @@ def admin_panel():
         "Eliminar",
     ]
 
-    
-    menu = nav_keys[nav_labels.index(sel_label)]
-    
+    # --- AQUÍ ESTÁ LA LÍNEA CORREGIDA ---
     sel_label = st.sidebar.radio("Navegacion Principal", nav_labels, label_visibility="collapsed")
+    menu = nav_keys[nav_labels.index(sel_label)]
+
     st.sidebar.markdown("<div style='flex:1;min-height:3rem;'></div>", unsafe_allow_html=True)
 
     st.sidebar.markdown(f"""
@@ -93,17 +93,14 @@ def admin_panel():
         </div>
     """, unsafe_allow_html=True)
 
-    # --- LÓGICA DE CIERRE DE SESIÓN CON COOKIES ---
     if st.sidebar.button("Cerrar Sesion", use_container_width=True):
         cookie_controller = CookieController()
-        cookie_controller.remove('auth_leravi') # Destruimos la cookie del navegador
-        
+        cookie_controller.remove('auth_leravi')
         st.session_state['logged'] = False
         st.rerun()
 
     # --- RUTAS DE NAVEGACION ---
     if menu == "Dashboard":
-        # ACTIVADOR DE AUTOREFRESH CADA 5 SEGUNDOS (5000 ms)
         st_autorefresh(interval=5000, limit=None, key="autorefresh_dashboard")
         views.render_dashboard()
     elif menu == "Almacen":
