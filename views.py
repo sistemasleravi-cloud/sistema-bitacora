@@ -13,15 +13,9 @@ from components import page_header, metric_card, section_title
 def render_dashboard():
     page_header("Dashboard Analitico", "Estado operativo del personal y equipos")
     
-    # --- AQUÍ UBICAMOS EL BOTÓN A LA DERECHA DE LAS PESTAÑAS ---
-    c_radio, c_btn = st.columns([8, 2])
-    with c_radio:
-        vista = st.radio("Vistas del Dashboard", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller", "Rendimiento Diesel"],
-                         horizontal=True, label_visibility="collapsed")
-    with c_btn:
-        st.markdown("<div style='margin-top: 0.1rem;'></div>", unsafe_allow_html=True)
-        if st.button("Actualizar Datos", use_container_width=True):
-            st.rerun()
+    # 1. Menú superior restaurado a su ancho completo
+    vista = st.radio("Vistas del Dashboard", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller", "Rendimiento Diesel"],
+                     horizontal=True, label_visibility="collapsed")
                      
     st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 
@@ -53,7 +47,15 @@ def render_dashboard():
                         'tarea_5','maquina_5','avance_5','fecha_inicio_5']
             st.dataframe(df[[c for c in cols_ord if c in df.columns]], use_container_width=True, hide_index=True)
 
-            section_title("Avance por Trabajador", "Progreso individual de actividades activas")
+            # 2. Botón movido y alineado junto al título
+            c_title, c_btn = st.columns([8, 2])
+            with c_title:
+                section_title("Avance por Trabajador", "Progreso individual de actividades activas")
+            with c_btn:
+                st.markdown("<div style='margin-top: 0.5rem;'></div>", unsafe_allow_html=True)
+                if st.button("ACTUALIZAR DATOS", use_container_width=True):
+                    st.rerun()
+
             hoy  = now_az().date()
 
             def dias_desde(fi):
