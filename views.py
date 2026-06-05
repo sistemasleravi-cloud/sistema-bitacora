@@ -13,9 +13,15 @@ from components import page_header, metric_card, section_title
 def render_dashboard():
     page_header("Dashboard Analitico", "Estado operativo del personal y equipos")
     
-    # --- AQUÍ ESTÁ LA CORRECCIÓN: Título interno agregado ---
-    vista = st.radio("Vistas del Dashboard", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller", "Rendimiento Diesel"],
-                     horizontal=True, label_visibility="collapsed")
+    # --- AQUÍ UBICAMOS EL BOTÓN A LA DERECHA DE LAS PESTAÑAS ---
+    c_radio, c_btn = st.columns([8, 2])
+    with c_radio:
+        vista = st.radio("Vistas del Dashboard", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller", "Rendimiento Diesel"],
+                         horizontal=True, label_visibility="collapsed")
+    with c_btn:
+        st.markdown("<div style='margin-top: 0.1rem;'></div>", unsafe_allow_html=True)
+        if st.button("Actualizar Datos", use_container_width=True):
+            st.rerun()
                      
     st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 
