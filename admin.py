@@ -6,7 +6,6 @@ from utils import now_az
 import views
 import almacen
 from db import db_query
-from streamlit_autorefresh import st_autorefresh
 from streamlit_cookies_controller import CookieController
 
 def admin_panel():
@@ -69,7 +68,6 @@ def admin_panel():
         "Eliminar",
     ]
 
-    # --- AQUÍ ESTÁ LA LÍNEA CORREGIDA ---
     sel_label = st.sidebar.radio("Navegacion Principal", nav_labels, label_visibility="collapsed")
     menu = nav_keys[nav_labels.index(sel_label)]
 
@@ -87,7 +85,7 @@ def admin_panel():
                     <p style="font-family:{FB};font-size:0.62rem;color:#444;margin:0;">
                         {now_az().strftime('%d %b %Y')}
                     </p>
-                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.1.1</p>
+                    <p style="font-family:{FB};font-size:0.8rem;font-weight:600;color:{BLA};margin:0;">Version: 2.1.2</p>
                 </div>
             </div>
         </div>
@@ -101,7 +99,13 @@ def admin_panel():
 
     # --- RUTAS DE NAVEGACION ---
     if menu == "Dashboard":
-        st_autorefresh(interval=5000, limit=None, key="autorefresh_dashboard")
+        # Botón nativo, seguro y sin emojis para mantener el diseño ejecutivo
+        c1, c2 = st.columns([8, 2])
+        with c2:
+            st.markdown("<div style='margin-top: 1.5rem;'></div>", unsafe_allow_html=True)
+            if st.button("Actualizar Datos", use_container_width=True):
+                st.rerun()
+        
         views.render_dashboard()
     elif menu == "Almacen":
         almacen.render_almacen(db_query, es_publico=False)
