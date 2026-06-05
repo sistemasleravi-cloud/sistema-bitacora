@@ -6,7 +6,8 @@ from utils import now_az
 import views
 import almacen
 from db import db_query
-from streamlit_autorefresh import st_autorefresh # <-- 1. IMPORTACION AGREGADA
+from streamlit_autorefresh import st_autorefresh
+from streamlit_cookies_controller import CookieController # <-- IMPORTACION PARA BORRAR COOKIES
 
 def admin_panel():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
@@ -91,13 +92,17 @@ def admin_panel():
         </div>
     """, unsafe_allow_html=True)
 
+    # --- LÓGICA DE CIERRE DE SESIÓN CON COOKIES ---
     if st.sidebar.button("Cerrar Sesion", use_container_width=True):
+        cookie_controller = CookieController()
+        cookie_controller.remove('auth_leravi') # Destruimos la cookie del navegador
+        
         st.session_state['logged'] = False
         st.rerun()
 
     # --- RUTAS DE NAVEGACION ---
     if menu == "Dashboard":
-        # --- 2. ACTIVADOR DE AUTOREFRESH CADA 5 SEGUNDOS (5000 ms) ---
+        # ACTIVADOR DE AUTOREFRESH CADA 5 SEGUNDOS (5000 ms)
         st_autorefresh(interval=5000, limit=None, key="autorefresh_dashboard")
         views.render_dashboard()
     elif menu == "Almacen":
