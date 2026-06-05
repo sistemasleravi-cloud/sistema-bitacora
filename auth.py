@@ -4,6 +4,7 @@ import base64
 from config import FB, FH, BLA, NEG, R
 from utils import now_az
 from db import db_query, check_password
+from streamlit_cookies_controller import CookieController # <-- 1. IMPORTACION AGREGADA
 
 def login_screen():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +64,11 @@ def login_screen():
         if st.form_submit_button("INGRESAR", use_container_width=True):
             res = db_query("SELECT * FROM usuarios WHERE usuario=%s", (usuario,), fetch=True)
             if res and check_password(clave, res[0]['password_hash']):
+                
+                # --- 2. AQUI GUARDAMOS LA COOKIE EN LA COMPU DEL USUARIO ---
+                cookie_controller = CookieController()
+                cookie_controller.set('auth_leravi', 'autenticado', max_age=2592000) # Dura 30 días (en segundos)
+                
                 st.session_state['logged'] = True
                 st.rerun()
             else:
