@@ -18,11 +18,6 @@ load_css()
 
 if conn:
     cookie_controller = CookieController()
-    
-    if 'espera_cookie' not in st.session_state:
-        st.session_state['espera_cookie'] = True
-        time.sleep(0.5)
-        st.rerun()
         
     cookie_auth = cookie_controller.get('auth_leravi')
 
