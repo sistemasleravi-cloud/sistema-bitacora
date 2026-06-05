@@ -69,9 +69,10 @@ def admin_panel():
         "Eliminar",
     ]
 
-    sel_label = st.sidebar.radio("", nav_labels, label_visibility="collapsed")
+    
     menu = nav_keys[nav_labels.index(sel_label)]
-
+    
+    sel_label = st.sidebar.radio("Navegacion Principal", nav_labels, label_visibility="collapsed")
     st.sidebar.markdown("<div style='flex:1;min-height:3rem;'></div>", unsafe_allow_html=True)
 
     st.sidebar.markdown(f"""
