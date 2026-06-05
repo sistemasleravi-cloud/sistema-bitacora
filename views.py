@@ -12,8 +12,11 @@ from components import page_header, metric_card, section_title
 
 def render_dashboard():
     page_header("Dashboard Analitico", "Estado operativo del personal y equipos")
-    vista = st.radio("", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller", "Rendimiento Diesel"],
+    
+    # --- AQUÍ ESTÁ LA CORRECCIÓN: Título interno agregado ---
+    vista = st.radio("Vistas del Dashboard", ["Vision General","Top Maquinas","Top Trabajadores","Control Herramientas","Taller", "Rendimiento Diesel"],
                      horizontal=True, label_visibility="collapsed")
+                     
     st.markdown("<div style='height:1.5rem'></div>", unsafe_allow_html=True)
 
     if vista == "Vision General":
