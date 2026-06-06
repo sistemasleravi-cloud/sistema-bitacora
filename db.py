@@ -78,31 +78,45 @@ def init_connection():
                 "ALTER TABLE bitacora ADD COLUMN avance_5 INT DEFAULT 0",
                 "ALTER TABLE bitacora ADD COLUMN fecha_inicio_5 DATE DEFAULT NULL",
                 "ALTER TABLE bitacora ADD COLUMN maquina_5 VARCHAR(255) DEFAULT '-'",
-                "ALTER TABLE bitacora_completados ADD COLUMN maquina VARCHAR(255) DEFAULT '-'",
+                "ALTER TABLE bitacora_completados ADD COLUMN maquina VARCHAR(255) DEFAULT '-'"
             ]:
-                try: cursor.execute(q); conn.commit()
-                except: pass
+                try:
+                    cursor.execute(q)
+                    conn.commit()
+                except:
+                    pass
             try:
                 cursor.execute("UPDATE bitacora_completados SET maquina=TRIM(UPPER(maquina)) WHERE maquina IS NOT NULL AND maquina!='-'")
                 cursor.execute("UPDATE maquinas SET nombre=TRIM(UPPER(nombre)) WHERE nombre IS NOT NULL")
                 conn.commit()
-            except: pass
-            conn.commit(); cursor.close()
+            except:
+                pass
+            conn.commit()
+            cursor.close()
             return conn
         except:
-            retries -= 1; time.sleep(3)
+            retries -= 1
+            time.sleep(3)
     return None
 
 conn = init_connection()
 
 def db_query(query, params=None, fetch=False):
-    try: conn.ping(reconnect=True, attempts=3, delay=1)
-    except: pass
+    try:
+        conn.ping(reconnect=True, attempts=3, delay=1)
+        cursor_db = conn.cursor()
+        cursor_db.execute(f"USE {st.secrets['mysql']['database']}")
+        cursor_db.close()
+    except:
+        pass
     cursor = conn.cursor(dictionary=True)
     cursor.execute(query, params or ())
     if fetch:
-        res = cursor.fetchall(); cursor.close(); return res
-    conn.commit(); cursor.close()
+        res = cursor.fetchall()
+        cursor.close()
+        return res
+    conn.commit()
+    cursor.close()
 
 def check_password(pw, hashed):
     return bcrypt.checkpw(pw.encode(), hashed.encode())
@@ -110,5 +124,6 @@ def check_password(pw, hashed):
 def obtener_lista_maquinas():
     res = db_query("SELECT nombre FROM maquinas ORDER BY nombre ASC", fetch=True)
     lista = ["-"]
-    if res: lista.extend([str(r['nombre']).strip().upper() for r in res])
+    if res:
+        lista.extend([str(r['nombre']).strip().upper() for r in res])
     return sorted(list(set(lista)))
