@@ -262,3 +262,10 @@ div[data-testid="column"] {
     padding-top: 2rem;
     padding-bottom: 2rem;
 }
+
+div[data-baseweb="input"] input, 
+div[data-baseweb="select"] div,
+div[data-baseweb="select"] span {
+    color: var(--charcoal) !important;
+    -webkit-text-fill-color: var(--charcoal) !important;
+}
