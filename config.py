@@ -298,5 +298,21 @@ def load_css():
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #D0D0D5; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--rojo); }
+
+    [data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stTextInput"] div[data-baseweb="input"] input,
+    [data-testid="stNumberInput"] div[data-baseweb="input"],
+    [data-testid="stNumberInput"] div[data-baseweb="input"] input,
+    [data-testid="stSelectbox"] div[data-baseweb="select"],
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+        background: var(--fondo) !important;
+        color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
+    }
+
+    [data-testid="stSelectbox"] div[data-baseweb="select"] span {
+        color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
+    }
     </style>
     """, unsafe_allow_html=True)
