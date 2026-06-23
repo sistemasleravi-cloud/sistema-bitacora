@@ -130,22 +130,28 @@ button[kind="primary"] {
     border: none !important;
 }
 
-.stTextInput > div > div > input,
-.stSelectbox > div > div > div,
-.stNumberInput > div > div > input {
+[data-testid="stTextInput"] div[data-baseweb="input"],
+[data-testid="stTextInput"] div[data-baseweb="input"] input,
+[data-testid="stNumberInput"] div[data-baseweb="input"],
+[data-testid="stNumberInput"] div[data-baseweb="input"] input,
+[data-testid="stSelectbox"] div[data-baseweb="select"],
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: var(--white) !important;
+    color: var(--charcoal) !important;
+    -webkit-text-fill-color: var(--charcoal) !important;
     border-radius: 2px;
-    border: 1px solid var(--gray-light);
-    background-color: var(--white);
-    color: var(--black);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-    transition: border-color 0.2s ease;
+    font-family: 'DM Sans', sans-serif !important;
 }
 
-.stTextInput > div > div > input:focus,
-.stNumberInput > div > div > input:focus {
-    border-color: var(--red);
-    box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.12);
+[data-testid="stSelectbox"] div[data-baseweb="select"] span {
+    color: var(--charcoal) !important;
+    -webkit-text-fill-color: var(--charcoal) !important;
+}
+
+div[data-baseweb="input"]:focus-within,
+div[data-baseweb="select"] > div:focus-within {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.12) !important;
 }
 
 .stTextInput > label,
@@ -231,19 +237,6 @@ div[data-testid="stForm"] {
     border-bottom: 2px solid var(--gray-light);
 }
 
-div[data-baseweb="select"] > div {
-    border-radius: 2px;
-    border: 1px solid var(--gray-light);
-    background-color: var(--white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.9rem;
-}
-
-div[data-baseweb="select"] > div:focus-within {
-    border-color: var(--red);
-    box-shadow: 0 0 0 2px rgba(200, 16, 46, 0.12);
-}
-
 [data-testid="stRadio"] label {
     font-family: 'DM Sans', sans-serif;
     font-size: 0.85rem;
@@ -261,11 +254,4 @@ div[data-testid="column"] {
 .block-container {
     padding-top: 2rem;
     padding-bottom: 2rem;
-}
-
-div[data-baseweb="input"] input, 
-div[data-baseweb="select"] div,
-div[data-baseweb="select"] span {
-    color: var(--charcoal) !important;
-    -webkit-text-fill-color: var(--charcoal) !important;
 }
