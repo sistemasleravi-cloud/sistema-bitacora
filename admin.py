@@ -11,21 +11,21 @@ from streamlit_cookies_controller import CookieController
 def admin_panel():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
     rutas_posibles = [
-        os.path.join(ruta_script, "logoLeravi.jpeg"),
-        os.path.join(ruta_script, "..", "logoLeravi.jpeg"),
-        "/app/logoLeravi.jpeg"
+        os.path.join(ruta_script, "Leravi.jpg"),
+        os.path.join(ruta_script, "..", "Leravi.jpg"),
+        "/app/Leravi.jpg"
     ]
 
-    logo_encontrado = None
+    _encontrado = None
     for ruta in rutas_posibles:
         if os.path.exists(ruta):
-            logo_encontrado = ruta
+            _encontrado = ruta
             break
 
     marca_html = ""
-    if logo_encontrado:
+    if _encontrado:
         try:
-            with open(logo_encontrado, "rb") as image_file:
+            with open(_encontrado, "rb") as image_file:
                 encoded_string = base64.b64encode(image_file.read()).decode()
                 marca_html += f"""<div style="text-align: center; padding: 1.5rem 1rem 0.5rem 1rem;">
 <img src="data:image/jpeg;base64,{encoded_string}" width="120" style="border-radius: 8px; border: 1px solid #2A2A2A; margin-bottom: 0.8rem;">
@@ -36,7 +36,7 @@ def admin_panel():
         except Exception as e:
             marca_html += f'<div style="text-align:center; padding:1.5rem;"><p style="color:red;font-size:0.8rem;">Error: {str(e)}</p></div>'
     else:
-        marca_html += f'<div style="text-align:center; padding:1.5rem;"><p style="color:var(--gris);font-size:0.8rem;font-style:italic;">Logo no disponible</p></div>'
+        marca_html += f'<div style="text-align:center; padding:1.5rem;"><p style="color:var(--gris);font-size:0.8rem;font-style:italic;"> no disponible</p></div>'
 
     st.sidebar.markdown(marca_html, unsafe_allow_html=True)
 
