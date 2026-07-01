@@ -11,9 +11,9 @@ from streamlit_cookies_controller import CookieController
 def admin_panel():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
     rutas_posibles = [
-        os.path.join(ruta_script, "Leravi.jpg"),
-        os.path.join(ruta_script, "..", "Leravi.jpg"),
-        "/app/Leravi.jpg"
+        os.path.join(ruta_script, "logoLeravi.jpg"),
+        os.path.join(ruta_script, "..", "logoLeravi.jpg"),
+        "/app/logoLeravi.jpg"
     ]
 
     _encontrado = None
