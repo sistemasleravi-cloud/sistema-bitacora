@@ -9,10 +9,10 @@ from streamlit_cookies_controller import CookieController # <-- 1. IMPORTACION A
 def login_screen():
     ruta_script = os.path.dirname(os.path.abspath(__file__))
     rutas_posibles = [
-        os.path.join(ruta_script, "logoLeravi.jpeg"),
-        os.path.join(ruta_script, "..", "logoLeravi.jpeg"),
-        "/app/logoLeravi.jpeg",
-        "logoLeravi.jpeg"
+        os.path.join(ruta_script, "logoLeravi.jpg"),
+        os.path.join(ruta_script, "..", "logoLeravi.jpg"),
+        "/app/logoLeravi.jpg",
+        "logoLeravi.jpg"
     ]
 
     logo_encontrado = None
