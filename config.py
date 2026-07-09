@@ -99,6 +99,7 @@ def load_css():
         text-transform: none !important;
         margin: 0 !important;
         opacity: 1 !important;
+        -webkit-text-fill-color: #AAAAAA !important;
     }
 
     [data-testid="stSidebar"] .stButton > button {
@@ -141,6 +142,7 @@ def load_css():
         line-height: 1.35 !important;
         box-shadow: 0 1px 3px rgba(200,16,46,0.30) !important;
         transition: var(--t) !important;
+        -webkit-text-fill-color: var(--blanco) !important;
     }
     .stButton > button:hover {
         background: var(--rojo-dk) !important;
@@ -151,31 +153,48 @@ def load_css():
 
     [data-testid="stForm"] {
         background: var(--card) !important;
+        background-color: var(--card) !important;
         border: 1px solid #E8E8EA !important;
         border-radius: var(--r) !important;
         padding: 2rem !important;
         box-shadow: var(--sh) !important;
     }
 
-    .stTextInput > div > div > input,
-    .stNumberInput > div > div > input {
-        border: 1.5px solid #E2E2E5 !important;
+    [data-testid="stTextInput"] div[data-baseweb="input"],
+    [data-testid="stTextInput"] div[data-baseweb="input"] input,
+    [data-testid="stTextInput"] div[data-baseweb="base-input"],
+    [data-testid="stNumberInput"] div[data-baseweb="input"],
+    [data-testid="stNumberInput"] div[data-baseweb="input"] input,
+    [data-testid="stNumberInput"] div[data-baseweb="base-input"] {
         border-radius: 6px !important;
-        background: var(--fondo) !important;
+        background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
         color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
         font-family: var(--font) !important;
         font-size: 0.88rem !important;
-        padding: 0.58rem 0.9rem !important;
         transition: var(--t) !important;
     }
-    .stTextInput > div > div > input:focus,
-    .stNumberInput > div > div > input:focus {
+    
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input {
+        padding: 0.58rem 0.9rem !important;
+        border: 1.5px solid #E2E2E5 !important;
+    }
+
+    [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
+    [data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within {
         border-color: var(--rojo) !important;
         background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
         box-shadow: 0 0 0 3px rgba(200,16,46,0.10) !important;
         outline: none !important;
     }
-    .stTextInput > div > div > input::placeholder { color: #B0B0B8 !important; }
+
+    .stTextInput > div > div > input::placeholder { 
+        color: #B0B0B8 !important; 
+        -webkit-text-fill-color: #B0B0B8 !important; 
+    }
 
     .stTextInput label,
     .stNumberInput label,
@@ -186,32 +205,55 @@ def load_css():
         letter-spacing: 0.08em !important;
         text-transform: uppercase !important;
         color: var(--gris) !important;
+        -webkit-text-fill-color: var(--gris) !important;
     }
 
-    .stSelectbox > div > div {
-        border: 1.5px solid #E2E2E5 !important;
+    [data-testid="stSelectbox"] div[data-baseweb="select"],
+    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
         border-radius: 6px !important;
-        background: var(--fondo) !important;
+        background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
+        color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
         font-family: var(--font) !important;
         font-size: 0.88rem !important;
         transition: var(--t) !important;
     }
+    
+    .stSelectbox > div > div {
+        border: 1.5px solid #E2E2E5 !important;
+    }
+
+    [data-testid="stSelectbox"] div[data-baseweb="select"]:focus-within,
     .stSelectbox > div > div:focus-within {
         border-color: var(--rojo) !important;
         box-shadow: 0 0 0 3px rgba(200,16,46,0.10) !important;
+        background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
+    }
+    
+    [data-testid="stSelectbox"] span,
+    [data-testid="stSelectbox"] div[data-baseweb="select"] span {
+        color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
     }
 
     .stNumberInput button {
-        background: var(--fondo) !important;
+        background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
         border: 1.5px solid #E2E2E5 !important;
         color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
         min-height: unset !important;
         box-shadow: none !important;
         transition: var(--t) !important;
     }
+    
     .stNumberInput button:hover {
         background: var(--rojo) !important;
+        background-color: var(--rojo) !important;
         color: var(--blanco) !important;
+        -webkit-text-fill-color: var(--blanco) !important;
         border-color: var(--rojo) !important;
         transform: none !important;
     }
@@ -219,6 +261,7 @@ def load_css():
     .stRadio > div { gap: 0.4rem !important; flex-wrap: wrap !important; }
     .stRadio label {
         background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
         border: 1.5px solid #E2E2E5 !important;
         border-radius: 6px !important;
         padding: 0.42rem 1.1rem !important;
@@ -232,6 +275,7 @@ def load_css():
         font-size: 0.8rem !important;
         font-weight: 600 !important;
         color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
         margin: 0 !important;
     }
 
@@ -240,6 +284,7 @@ def load_css():
         border: none !important;
         border-left: 2px solid transparent !important;
         background: transparent !important;
+        background-color: transparent !important;
         padding: 0.72rem 1.4rem !important;
         box-shadow: none !important;
     }
@@ -250,6 +295,7 @@ def load_css():
         font-weight: 700 !important;
         letter-spacing: -0.02em !important;
         color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
         margin: 0 !important;
         line-height: 1.2 !important;
     }
@@ -259,6 +305,7 @@ def load_css():
         font-weight: 700 !important;
         letter-spacing: -0.01em !important;
         color: var(--ink) !important;
+        -webkit-text-fill-color: var(--ink) !important;
         margin: 0 !important;
     }
     h3 {
@@ -268,6 +315,7 @@ def load_css():
         text-transform: uppercase !important;
         letter-spacing: 0.1em !important;
         color: var(--gris) !important;
+        -webkit-text-fill-color: var(--gris) !important;
         margin: 0 !important;
     }
 
@@ -276,6 +324,7 @@ def load_css():
         overflow: hidden !important;
         box-shadow: var(--sh) !important;
         border: 1px solid #E8E8EA !important;
+        background-color: var(--blanco) !important;
     }
 
     [data-testid="stAlert"] {
@@ -286,6 +335,7 @@ def load_css():
 
     [data-testid="stPlotlyChart"] {
         background: var(--blanco) !important;
+        background-color: var(--blanco) !important;
         border: 1px solid #E8E8EA !important;
         border-radius: var(--r) !important;
         overflow: hidden !important;
@@ -298,21 +348,5 @@ def load_css():
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #D0D0D5; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--rojo); }
-
-    [data-testid="stTextInput"] div[data-baseweb="input"],
-    [data-testid="stTextInput"] div[data-baseweb="input"] input,
-    [data-testid="stNumberInput"] div[data-baseweb="input"],
-    [data-testid="stNumberInput"] div[data-baseweb="input"] input,
-    [data-testid="stSelectbox"] div[data-baseweb="select"],
-    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-        background: var(--fondo) !important;
-        color: var(--ink) !important;
-        -webkit-text-fill-color: var(--ink) !important;
-    }
-
-    [data-testid="stSelectbox"] div[data-baseweb="select"] span {
-        color: var(--ink) !important;
-        -webkit-text-fill-color: var(--ink) !important;
-    }
     </style>
     """, unsafe_allow_html=True)
