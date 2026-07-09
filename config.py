@@ -160,42 +160,76 @@ def load_css():
         box-shadow: var(--sh) !important;
     }
 
-    [data-testid="stTextInput"] div[data-baseweb="input"],
-    [data-testid="stTextInput"] div[data-baseweb="input"] input,
-    [data-testid="stTextInput"] div[data-baseweb="base-input"],
-    [data-testid="stNumberInput"] div[data-baseweb="input"],
-    [data-testid="stNumberInput"] div[data-baseweb="input"] input,
-    [data-testid="stNumberInput"] div[data-baseweb="base-input"] {
-        border-radius: 6px !important;
-        background: var(--blanco) !important;
-        background-color: var(--blanco) !important;
-        color: var(--ink) !important;
-        -webkit-text-fill-color: var(--ink) !important;
-        font-family: var(--font) !important;
-        font-size: 0.88rem !important;
-        transition: var(--t) !important;
-    }
+    /* ========================================================
+       INPUTS, SELECTS Y NUMBERS (FORZAR MODO CLARO Y LIMPIO)
+       ======================================================== */
     
-    .stTextInput > div > div > input,
-    .stNumberInput > div > div > input {
-        padding: 0.58rem 0.9rem !important;
-        border: 1.5px solid #E2E2E5 !important;
+    /* 1. Limpiar los fondos oscuros del Dark Theme en los envoltorios */
+    div[data-baseweb="input"],
+    div[data-baseweb="base-input"],
+    div[data-baseweb="select"] {
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
     }
 
-    [data-testid="stTextInput"] div[data-baseweb="input"]:focus-within,
-    [data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within {
+    /* 2. Forzar el fondo blanco y texto oscuro directamente en las cajas de texto reales */
+    .stTextInput input,
+    .stNumberInput input,
+    div[data-baseweb="select"] > div {
+        background-color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        color: #0A0A0A !important;
+        -webkit-text-fill-color: #0A0A0A !important;
+        border: 1.5px solid #E2E2E5 !important;
+        border-radius: 6px !important;
+        font-family: var(--font) !important;
+        font-size: 0.88rem !important;
+        padding: 0.5rem 0.8rem !important;
+        transition: var(--t) !important;
+        box-shadow: none !important;
+    }
+
+    /* 3. Textos dentro de la lista desplegable (Select) */
+    div[data-baseweb="select"] span {
+        color: #0A0A0A !important;
+        -webkit-text-fill-color: #0A0A0A !important;
+    }
+
+    /* 4. Efecto de Foco (Click en la caja) */
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    div[data-baseweb="select"] > div:focus-within {
         border-color: var(--rojo) !important;
-        background: var(--blanco) !important;
-        background-color: var(--blanco) !important;
         box-shadow: 0 0 0 3px rgba(200,16,46,0.10) !important;
+        background-color: #FFFFFF !important;
         outline: none !important;
     }
 
-    .stTextInput > div > div > input::placeholder { 
+    /* 5. Placeholder (Texto de ayuda fantasma) */
+    .stTextInput input::placeholder,
+    .stNumberInput input::placeholder { 
         color: #B0B0B8 !important; 
         -webkit-text-fill-color: #B0B0B8 !important; 
     }
 
+    /* 6. Botones +/- del Number Input */
+    .stNumberInput button {
+        background-color: #F4F4F6 !important;
+        border: 1.5px solid #E2E2E5 !important;
+        color: #0A0A0A !important;
+        -webkit-text-fill-color: #0A0A0A !important;
+        border-radius: 4px !important;
+        transition: var(--t) !important;
+    }
+    .stNumberInput button:hover {
+        background-color: var(--rojo) !important;
+        border-color: var(--rojo) !important;
+        color: #FFFFFF !important;
+        -webkit-text-fill-color: #FFFFFF !important;
+    }
+
+    /* 7. Labels (Títulos de los campos como "TAREA 1") */
     .stTextInput label,
     .stNumberInput label,
     .stSelectbox label {
@@ -206,57 +240,10 @@ def load_css():
         text-transform: uppercase !important;
         color: var(--gris) !important;
         -webkit-text-fill-color: var(--gris) !important;
+        margin-bottom: 0.2rem !important;
     }
 
-    [data-testid="stSelectbox"] div[data-baseweb="select"],
-    [data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-        border-radius: 6px !important;
-        background: var(--blanco) !important;
-        background-color: var(--blanco) !important;
-        color: var(--ink) !important;
-        -webkit-text-fill-color: var(--ink) !important;
-        font-family: var(--font) !important;
-        font-size: 0.88rem !important;
-        transition: var(--t) !important;
-    }
-    
-    .stSelectbox > div > div {
-        border: 1.5px solid #E2E2E5 !important;
-    }
-
-    [data-testid="stSelectbox"] div[data-baseweb="select"]:focus-within,
-    .stSelectbox > div > div:focus-within {
-        border-color: var(--rojo) !important;
-        box-shadow: 0 0 0 3px rgba(200,16,46,0.10) !important;
-        background: var(--blanco) !important;
-        background-color: var(--blanco) !important;
-    }
-    
-    [data-testid="stSelectbox"] span,
-    [data-testid="stSelectbox"] div[data-baseweb="select"] span {
-        color: var(--ink) !important;
-        -webkit-text-fill-color: var(--ink) !important;
-    }
-
-    .stNumberInput button {
-        background: var(--blanco) !important;
-        background-color: var(--blanco) !important;
-        border: 1.5px solid #E2E2E5 !important;
-        color: var(--ink) !important;
-        -webkit-text-fill-color: var(--ink) !important;
-        min-height: unset !important;
-        box-shadow: none !important;
-        transition: var(--t) !important;
-    }
-    
-    .stNumberInput button:hover {
-        background: var(--rojo) !important;
-        background-color: var(--rojo) !important;
-        color: var(--blanco) !important;
-        -webkit-text-fill-color: var(--blanco) !important;
-        border-color: var(--rojo) !important;
-        transform: none !important;
-    }
+    /* ======================================================== */
 
     .stRadio > div { gap: 0.4rem !important; flex-wrap: wrap !important; }
     .stRadio label {
