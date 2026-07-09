@@ -4,3 +4,6 @@ primaryColor="#C8102E"
 backgroundColor="#F4F4F6"
 secondaryBackgroundColor="#FFFFFF"
 textColor="#1A1A1A"
+
+[client]
+toolbarMode="minimal"
